@@ -2,1159 +2,473 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="description" content="Family Heritage - A beautifully crafted interactive family tree visualization tool for preserving and exploring your ancestral legacy">
-<meta name="theme-color" content="#0f0e0c">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Family Heritage • Interactive Family Tree</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Family Heritage - High-fidelity interactive family tree visualization.">
+<title>Family Heritage — The Living Chronicle</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-  /* Modern CSS Reset & Variables */
   :root {
-    --bg-primary: #0a0908;
-    --bg-secondary: #11100e;
-    --bg-tertiary: #1a1815;
-    --bg-card: #1c1a16;
-    --bg-card-hover: #24211c;
-    --gold-primary: #d4af37;
-    --gold-light: #f4d03f;
-    --gold-dark: #9a7b1c;
-    --gold-soft: rgba(212, 175, 55, 0.15);
-    --text-primary: #f5f0e8;
-    --text-secondary: #c4b8a7;
-    --text-muted: #8a8178;
-    --border-subtle: rgba(212, 175, 55, 0.12);
-    --border-medium: rgba(212, 175, 55, 0.25);
-    --male-color: #4a7c9b;
-    --male-light: #6ba3c7;
-    --female-color: #9b4a6e;
-    --female-light: #c76b93;
-    --unknown-color: #6b6b5e;
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.5);
-    --shadow-gold: 0 4px 12px rgba(212, 175, 55, 0.15);
-    --radius-sm: 6px;
-    --radius-md: 10px;
-    --radius-lg: 16px;
-    --radius-xl: 24px;
-    --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --font-serif: 'Cormorant Garamond', serif;
-    --font-sans: 'Inter', sans-serif;
+    --bg: #0a0a08;
+    --surface: #141412;
+    --surface-light: #1c1c1a;
+    --accent: #d4af37;
+    --accent-dim: #8a6d1a;
+    --text-main: #e2e2d8;
+    --text-muted: #8e8e82;
+    --male: #3a5a8a;
+    --female: #8a3a5a;
+    --glass: rgba(20, 20, 18, 0.85);
+    --border: rgba(212, 175, 55, 0.2);
+    --shadow-xl: 0 20px 40px rgba(0,0,0,0.6);
   }
 
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
   body {
-    font-family: var(--font-sans);
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text-main);
+    height: 100vh;
     overflow: hidden;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Elegant Scrollbar */
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb {
-    background: var(--border-medium);
-    border-radius: 3px;
+  /* GRAIN TEXTURE OVERLAY */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 999;
   }
-  ::-webkit-scrollbar-thumb:hover { background: var(--gold-primary); }
 
-  /* Header - Refined */
-  .app-header {
-    background: linear-gradient(180deg, var(--bg-secondary) 0%, rgba(17, 16, 14, 0.98) 100%);
-    border-bottom: 1px solid var(--border-subtle);
-    padding: 0 2rem;
+  /* NAVIGATION */
+  header {
     height: 72px;
+    background: var(--glass);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: space-between;
+    padding: 0 2rem;
     position: relative;
     z-index: 100;
-    backdrop-filter: blur(10px);
   }
 
-  .logo-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 14px;
+  .logo-area { display: flex; align-items: center; gap: 15px; }
+  .logo-icon { font-size: 2rem; filter: drop-shadow(0 0 8px var(--accent-dim)); }
+  .logo-text h1 { 
+    font-family: 'Playfair Display', serif; 
+    font-size: 1.2rem; 
+    letter-spacing: 1px;
+    color: var(--accent);
   }
+  .logo-text p { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; }
 
-  .logo-icon {
-    width: 44px;
-    height: 44px;
-    background: linear-gradient(135deg, var(--gold-soft), transparent);
-    border: 1.5px solid var(--border-medium);
-    border-radius: var(--radius-lg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    box-shadow: var(--shadow-gold);
-  }
+  .nav-actions { display: flex; gap: 12px; }
 
-  .logo-text {
-    font-family: var(--font-serif);
-    font-size: 1.6rem;
-    font-weight: 600;
-    color: var(--gold-primary);
-    letter-spacing: -0.01em;
-    line-height: 1.2;
-  }
-
-  .logo-subtext {
-    font-family: var(--font-sans);
-    font-size: 0.7rem;
-    font-weight: 400;
-    color: var(--text-secondary);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    margin-top: 2px;
-  }
-
-  /* Modern Button System */
+  /* BUTTON STYLING */
   .btn {
-    font-family: var(--font-sans);
-    font-size: 0.8rem;
+    background: var(--surface-light);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-size: 0.85rem;
     font-weight: 500;
-    border: 1px solid var(--border-subtle);
-    background: var(--bg-tertiary);
-    color: var(--text-secondary);
-    border-radius: var(--radius-md);
-    padding: 8px 16px;
     cursor: pointer;
-    transition: all var(--transition-fast);
-    display: inline-flex;
+    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
     align-items: center;
     gap: 8px;
-    white-space: nowrap;
-    letter-spacing: 0.01em;
-    backdrop-filter: blur(5px);
+    text-decoration: none;
   }
+  .btn:hover { background: var(--accent-dim); border-color: var(--accent); transform: translateY(-1px); }
+  .btn.primary { background: var(--accent); color: var(--bg); font-weight: 600; }
 
-  .btn i { font-size: 0.9rem; opacity: 0.8; }
-  .btn:hover {
-    background: var(--bg-card-hover);
-    color: var(--text-primary);
-    border-color: var(--border-medium);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
-  }
+  /* APP LAYOUT */
+  .main-container { display: flex; height: calc(100vh - 72px); }
 
-  .btn-primary {
-    background: linear-gradient(135deg, var(--gold-dark), var(--gold-primary));
-    color: var(--bg-primary);
-    border: none;
-    font-weight: 600;
-    box-shadow: var(--shadow-gold);
-  }
-
-  .btn-primary:hover {
-    background: linear-gradient(135deg, var(--gold-primary), var(--gold-light));
-    color: var(--bg-primary);
-    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3);
-  }
-
-  .btn-danger {
-    color: #e07070;
-    border-color: rgba(224, 112, 112, 0.2);
-  }
-
-  .btn-danger:hover {
-    background: rgba(224, 112, 112, 0.1);
-    color: #f09090;
-    border-color: rgba(224, 112, 112, 0.4);
-  }
-
-  .btn-icon {
-    padding: 8px 12px;
-  }
-
-  .header-actions {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-  }
-
-  /* Main Layout */
-  .app-container {
-    display: flex;
-    height: calc(100vh - 72px);
-    position: relative;
-  }
-
-  /* Enhanced Sidebar */
+  /* SIDEBAR */
   .sidebar {
-    width: 320px;
-    min-width: 320px;
-    background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
-    border-right: 1px solid var(--border-subtle);
+    width: 340px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    transition: all var(--transition-smooth);
-    position: relative;
-    z-index: 50;
+    transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 80;
   }
+  .sidebar.collapsed { width: 0; opacity: 0; pointer-events: none; }
 
-  .sidebar.collapsed {
-    width: 0;
-    min-width: 0;
-    opacity: 0;
-    visibility: hidden;
-  }
-
-  .sidebar-header {
-    padding: 1.5rem 1.25rem 1rem;
-    border-bottom: 1px solid var(--border-subtle);
-  }
-
-  .sidebar-header h2 {
-    font-family: var(--font-serif);
-    font-size: 1.3rem;
-    font-weight: 500;
-    color: var(--gold-primary);
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .search-wrapper {
-    position: relative;
-    margin-bottom: 12px;
-  }
-
-  .search-wrapper i {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-muted);
-    font-size: 0.9rem;
-  }
-
+  .sidebar-header { padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
   .search-input {
     width: 100%;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-lg);
-    padding: 10px 12px 10px 38px;
-    color: var(--text-primary);
-    font-size: 0.85rem;
-    font-family: var(--font-sans);
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    padding: 12px;
+    border-radius: 8px;
+    color: white;
     outline: none;
-    transition: all var(--transition-fast);
+    font-family: 'Inter', sans-serif;
   }
 
-  .search-input:focus {
-    border-color: var(--gold-primary);
-    box-shadow: 0 0 0 3px var(--gold-soft);
-  }
-
-  .filter-group {
-    display: flex;
-    gap: 8px;
-  }
-
-  .filter-select {
-    flex: 1;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-md);
-    padding: 7px 8px;
-    color: var(--text-secondary);
-    font-size: 0.75rem;
-    font-family: var(--font-sans);
-    outline: none;
-    cursor: pointer;
-  }
-
-  /* Member List */
-  .member-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 0.75rem;
-  }
-
+  .member-list { flex: 1; overflow-y: auto; padding: 1rem; }
   .member-card {
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.02);
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px;
-    margin-bottom: 4px;
-    border-radius: var(--radius-md);
     cursor: pointer;
-    transition: all var(--transition-fast);
     border: 1px solid transparent;
-    background: transparent;
+    transition: 0.2s;
+  }
+  .member-card:hover { background: rgba(255,255,255,0.05); border-color: var(--accent-dim); }
+  
+  .avatar-sm {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 0.75rem; color: #fff;
   }
 
-  .member-card:hover {
-    background: var(--bg-card);
-    border-color: var(--border-subtle);
-    transform: translateX(2px);
-  }
-
-  .member-card.active {
-    background: linear-gradient(90deg, var(--gold-soft), transparent);
-    border-color: var(--border-medium);
-  }
-
-  .member-avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.9rem;
-    font-weight: 600;
-    flex-shrink: 0;
-    position: relative;
-    box-shadow: var(--shadow-sm);
-  }
-
-  .member-avatar::after {
-    content: '';
-    position: absolute;
-    inset: -2px;
-    border-radius: 50%;
-    border: 1.5px solid currentColor;
-    opacity: 0.3;
-  }
-
-  .member-avatar.male {
-    background: linear-gradient(135deg, var(--male-color), color-mix(in srgb, var(--male-color) 70%, white));
-    color: white;
-  }
-
-  .member-avatar.female {
-    background: linear-gradient(135deg, var(--female-color), color-mix(in srgb, var(--female-color) 70%, white));
-    color: white;
-  }
-
-  .member-avatar.unknown {
-    background: linear-gradient(135deg, var(--unknown-color), color-mix(in srgb, var(--unknown-color) 70%, white));
-    color: white;
-  }
-
-  .member-info {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .member-name {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .member-meta {
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    margin-top: 2px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .deceased-badge {
-    color: var(--text-muted);
-    font-size: 0.65rem;
-  }
-
-  /* Stats Bar */
-  .stats-container {
-    padding: 1rem 1.25rem;
-    border-top: 1px solid var(--border-subtle);
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    background: linear-gradient(0deg, var(--bg-secondary) 0%, transparent 100%);
-  }
-
-  .stat-item {
-    text-align: center;
-  }
-
-  .stat-value {
-    font-size: 1.3rem;
-    font-weight: 600;
-    color: var(--gold-primary);
-    font-family: var(--font-serif);
-    line-height: 1.2;
-  }
-
-  .stat-label {
-    font-size: 0.6rem;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-
-  /* Tree Canvas Area */
-  .canvas-container {
+  /* CANVAS AREA */
+  .canvas-wrapper {
     flex: 1;
     position: relative;
+    background-image: radial-gradient(circle at center, #1a1a16 0%, #0a0a08 100%);
     overflow: hidden;
-    background: var(--bg-primary);
-    background-image: 
-      radial-gradient(circle at 15% 25%, rgba(212, 175, 55, 0.03) 0%, transparent 40%),
-      radial-gradient(circle at 85% 75%, rgba(212, 175, 55, 0.02) 0%, transparent 50%),
-      repeating-linear-gradient(45deg, var(--border-subtle) 0px, var(--border-subtle) 1px, transparent 1px, transparent 30px);
   }
 
-  #treeCanvas {
-    width: 100%;
-    height: 100%;
-    cursor: grab;
-    transition: cursor 0.1s;
+  #familyTree { width: 100%; height: 100%; cursor: grab; }
+  #familyTree:active { cursor: grabbing; }
+
+  /* SVG ELEMENTS */
+  .connector {
+    fill: none;
+    stroke: var(--accent-dim);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    opacity: 0.4;
+    transition: d 0.5s ease;
   }
-
-  #treeCanvas.dragging {
-    cursor: grabbing;
+  .node-rect {
+    fill: var(--surface-light);
+    stroke: var(--border);
+    stroke-width: 1;
+    rx: 12;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
+    transition: 0.3s;
   }
+  .node-group:hover .node-rect { stroke: var(--accent); stroke-width: 2; }
+  .node-text-name { fill: var(--text-main); font-size: 13px; font-weight: 600; pointer-events: none; }
+  .node-text-meta { fill: var(--text-muted); font-size: 10px; pointer-events: none; }
 
-  /* Floating Controls */
-  .canvas-controls {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    z-index: 30;
-  }
-
-  .control-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: var(--radius-md);
-    background: var(--bg-card);
-    border: 1px solid var(--border-subtle);
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    backdrop-filter: blur(10px);
-    font-size: 1.1rem;
-  }
-
-  .control-btn:hover {
-    background: var(--bg-card-hover);
-    color: var(--gold-primary);
-    border-color: var(--border-medium);
-    transform: scale(1.05);
-  }
-
-  /* Empty State */
-  .empty-state {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    pointer-events: none;
-    z-index: 20;
-  }
-
-  .empty-state-icon {
-    font-size: 5rem;
-    margin-bottom: 1.5rem;
-    opacity: 0.6;
-    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3));
-  }
-
-  .empty-state h2 {
-    font-family: var(--font-serif);
-    font-size: 2rem;
-    font-weight: 500;
-    color: var(--gold-primary);
-    margin-bottom: 0.5rem;
-  }
-
-  .empty-state p {
-    color: var(--text-muted);
-    font-size: 0.95rem;
-    line-height: 1.6;
-  }
-
-  /* Detail Panel - Refined */
-  .detail-panel {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    width: 340px;
-    max-width: calc(100vw - 40px);
-    background: var(--bg-card);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    z-index: 40;
-    display: none;
-    backdrop-filter: blur(20px);
-    animation: slideIn 0.25s ease-out;
-  }
-
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateX(-10px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-
-  .detail-panel.visible { display: block; }
-
-  .detail-header {
-    padding: 1.25rem;
-    display: flex;
-    gap: 14px;
-    align-items: flex-start;
-    border-bottom: 1px solid var(--border-subtle);
-    background: linear-gradient(180deg, var(--gold-soft), transparent);
-  }
-
-  .detail-avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    font-weight: 600;
-    flex-shrink: 0;
-    box-shadow: var(--shadow-md);
-  }
-
-  .detail-title {
-    flex: 1;
-  }
-
-  .detail-name {
-    font-family: var(--font-serif);
-    font-size: 1.3rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    line-height: 1.3;
-  }
-
-  .detail-subtitle {
-    font-size: 0.8rem;
-    color: var(--gold-primary);
-    margin-top: 4px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .detail-content {
-    padding: 1.25rem;
-    max-height: 350px;
-    overflow-y: auto;
-  }
-
-  .detail-field {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 12px;
-    font-size: 0.8rem;
-  }
-
-  .field-label {
-    color: var(--text-muted);
-    min-width: 90px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-size: 0.65rem;
-    font-weight: 500;
-  }
-
-  .field-value {
-    color: var(--text-secondary);
-    text-align: right;
-    max-width: 60%;
-    word-break: break-word;
-  }
-
-  .detail-actions {
-    padding: 0.75rem 1.25rem;
-    border-top: 1px solid var(--border-subtle);
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  /* Modal - Modern */
+  /* MODALS */
   .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(10, 9, 8, 0.9);
-    z-index: 200;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
+    background: rgba(0,0,0,0.85);
     backdrop-filter: blur(8px);
-    animation: fadeIn 0.2s ease-out;
-  }
-
-  .modal-overlay.hidden { display: none; }
-
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  .modal {
-    background: var(--bg-card);
-    border: 1px solid var(--border-medium);
-    border-radius: var(--radius-xl);
-    width: 100%;
-    max-width: 560px;
-    max-height: 90vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    box-shadow: var(--shadow-lg);
-    animation: modalSlideUp 0.25s ease-out;
-  }
-
-  @keyframes modalSlideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .modal-header {
-    padding: 1.5rem 1.75rem;
-    border-bottom: 1px solid var(--border-subtle);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: linear-gradient(180deg, var(--gold-soft), transparent);
-  }
-
-  .modal-header h2 {
-    font-family: var(--font-serif);
-    font-size: 1.5rem;
-    font-weight: 500;
-    color: var(--gold-primary);
-  }
-
-  .modal-close {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    font-size: 1.5rem;
-    cursor: pointer;
-    padding: 4px 8px;
-    transition: color var(--transition-fast);
-    line-height: 1;
-  }
-
-  .modal-close:hover { color: var(--text-primary); }
-
-  .modal-body {
-    padding: 1.75rem;
-    overflow-y: auto;
-  }
-
-  .form-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-bottom: 1rem;
+    place-items: center;
+    z-index: 1000;
+    opacity: 0; pointer-events: none; transition: 0.3s;
   }
-
-  .form-field {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+  .modal-overlay.active { opacity: 1; pointer-events: all; }
+  .modal-content {
+    background: var(--surface);
+    width: 90%;
+    max-width: 450px;
+    padding: 2.5rem;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-xl);
+    transform: scale(0.9); transition: 0.3s;
   }
+  .modal-overlay.active .modal-content { transform: scale(1); }
 
-  .form-field.full-width {
-    grid-column: 1 / -1;
-  }
+  .form-group { margin-bottom: 1.2rem; }
+  .form-group label { display: block; font-size: 0.75rem; color: var(--accent); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 1px; }
 
-  .form-field label {
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-
-  .form-control {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-md);
-    padding: 10px 14px;
-    color: var(--text-primary);
-    font-size: 0.85rem;
-    font-family: var(--font-sans);
-    outline: none;
-    transition: all var(--transition-fast);
-    width: 100%;
-  }
-
-  .form-control:focus {
-    border-color: var(--gold-primary);
-    box-shadow: 0 0 0 3px var(--gold-soft);
-  }
-
-  .form-control option {
-    background: var(--bg-tertiary);
-  }
-
-  textarea.form-control {
-    resize: vertical;
-    min-height: 80px;
-  }
-
-  .form-divider {
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin: 1.5rem 0 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid var(--border-subtle);
-  }
-
-  .modal-footer {
-    padding: 1rem 1.75rem;
-    border-top: 1px solid var(--border-subtle);
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    background: var(--bg-tertiary);
-  }
-
-  /* Toast Notification */
-  .toast-container {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    z-index: 999;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .toast {
-    background: var(--bg-card);
-    border: 1px solid var(--border-medium);
-    border-radius: var(--radius-lg);
-    padding: 14px 20px;
-    font-size: 0.85rem;
-    color: var(--text-primary);
-    box-shadow: var(--shadow-lg);
-    backdrop-filter: blur(20px);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    opacity: 0;
-    transform: translateX(100%);
-    transition: all var(--transition-smooth);
-    pointer-events: none;
-  }
-
-  .toast.show {
-    opacity: 1;
-    transform: translateX(0);
-  }
-
-  .toast i {
-    color: var(--gold-primary);
-    font-size: 1.1rem;
-  }
-
-  /* Tooltip */
-  .node-tooltip {
-    position: absolute;
-    pointer-events: none;
-    background: var(--bg-card);
-    border: 1px solid var(--border-medium);
-    border-radius: var(--radius-md);
-    padding: 10px 16px;
-    font-size: 0.8rem;
-    color: var(--text-primary);
-    z-index: 35;
-    display: none;
-    box-shadow: var(--shadow-md);
-    backdrop-filter: blur(10px);
-    white-space: nowrap;
-  }
-
-  /* Legend */
-  .legend-panel {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    background: var(--bg-card);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-lg);
-    padding: 14px 18px;
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    z-index: 30;
-    backdrop-filter: blur(10px);
-  }
-
-  .legend-title {
-    color: var(--text-secondary);
-    font-weight: 600;
-    margin-bottom: 10px;
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 6px;
-  }
-
-  .legend-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-
-  .legend-line {
-    width: 20px;
-    height: 3px;
-    background: var(--gold-primary);
-    border-radius: 2px;
-    flex-shrink: 0;
-  }
-
-  /* Hint Bar */
-  .hint-bar {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--bg-card);
-    border: 1px solid var(--border-subtle);
-    border-radius: 50px;
-    padding: 8px 20px;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    pointer-events: none;
-    z-index: 25;
-    backdrop-filter: blur(10px);
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    white-space: nowrap;
-  }
-
-  .hint-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .hint-item i {
-    color: var(--gold-primary);
-    font-size: 0.8rem;
-  }
-
-  /* Responsive Design */
   @media (max-width: 768px) {
-    .app-header {
-      padding: 0 1rem;
-      height: 60px;
-    }
-
-    .logo-text {
-      font-size: 1.2rem;
-    }
-
-    .logo-subtext {
-      display: none;
-    }
-
-    .logo-icon {
-      width: 36px;
-      height: 36px;
-      font-size: 18px;
-    }
-
-    .header-actions {
-      gap: 6px;
-    }
-
-    .btn {
-      padding: 6px 12px;
-      font-size: 0.7rem;
-    }
-
-    .btn span {
-      display: none;
-    }
-
-    .btn i {
-      margin: 0;
-    }
-
-    .sidebar {
-      position: absolute;
-      left: 0;
-      top: 60px;
-      bottom: 0;
-      width: 300px;
-      z-index: 60;
-      box-shadow: var(--shadow-lg);
-    }
-
-    .sidebar.collapsed {
-      transform: translateX(-100%);
-      width: 300px;
-      min-width: 300px;
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .form-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .detail-panel {
-      width: calc(100vw - 32px);
-      max-height: 70vh;
-    }
-
-    .hint-bar {
-      flex-wrap: wrap;
-      gap: 8px;
-      padding: 8px 16px;
-      font-size: 0.65rem;
-    }
-
-    .hint-item span {
-      display: none;
-    }
-
-    .legend-panel {
-      display: none;
-    }
-
-    .canvas-controls {
-      top: 12px;
-      right: 12px;
-    }
-
-    .control-btn {
-      width: 36px;
-      height: 36px;
-      font-size: 1rem;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .btn-primary span {
-      display: inline;
-    }
-
-    .stats-container {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
-
-    .modal-body {
-      padding: 1.25rem;
-    }
-
-    .modal-header {
-      padding: 1.25rem;
-    }
-
-    .modal-footer {
-      padding: 1rem 1.25rem;
-    }
-  }
-
-  /* Print Styles */
-  @media print {
-    .app-header, .sidebar, .canvas-controls, .hint-bar, .legend-panel, .detail-panel {
-      display: none !important;
-    }
-
-    .canvas-container {
-      background: white;
-    }
-
-    #treeCanvas {
-      background: white;
-    }
-
-    .tree-node rect {
-      fill: white !important;
-      stroke: #333 !important;
-    }
-
-    .tree-node text {
-      fill: #333 !important;
-    }
+    .sidebar { position: fixed; height: 100%; width: 280px; transform: translateX(-100%); }
+    .sidebar.active { transform: translateX(0); }
+    .nav-actions .btn span { display: none; }
   }
 </style>
 </head>
 <body>
 
-<!-- Enhanced Header -->
-<header class="app-header">
-  <div class="logo-wrapper">
+<header>
+  <div class="logo-area">
     <div class="logo-icon">🌳</div>
-    <div>
-      <div class="logo-text">Family Heritage</div>
-      <div class="logo-subtext">Legacy & Lineage</div>
+    <div class="logo-text">
+      <h1>FAMILY HERITAGE</h1>
+      <p>The Living Chronicle</p>
     </div>
   </div>
-  
-  <div class="header-actions">
-    <button class="btn" id="toggleSidebar" title="Toggle member list">
-      <i class="fas fa-users"></i>
-      <span>Members</span>
-    </button>
-    <button class="btn" id="centerBtn" title="Center tree view">
-      <i class="fas fa-crosshairs"></i>
-      <span>Center</span>
-    </button>
-    <button class="btn btn-primary" id="addRootBtn" title="Add new family member">
-      <i class="fas fa-plus-circle"></i>
-      <span>Add Member</span>
-    </button>
-    <button class="btn" id="exportBtn" title="Export tree data">
-      <i class="fas fa-download"></i>
-      <span>Export</span>
-    </button>
-    <button class="btn" id="importBtn" title="Import tree data">
-      <i class="fas fa-upload"></i>
-      <span>Import</span>
-    </button>
-    <button class="btn" id="loadSampleBtn" title="Load sample family">
-      <i class="fas fa-tree"></i>
-      <span>Sample</span>
-    </button>
+  <div class="nav-actions">
+    <button class="btn" onclick="toggleSidebar()"><span>Members</span></button>
+    <button class="btn primary" onclick="openAddModal()"><span>+ New Member</span></button>
   </div>
 </header>
 
-<!-- Main App Container -->
-<div class="app-container">
-  <!-- Enhanced Sidebar -->
+<div class="main-container">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <h2>
-        <i class="fas fa-users" style="font-size: 1rem;"></i>
-        Family Members
-      </h2>
-      <div class="search-wrapper">
-        <i class="fas fa-search"></i>
-        <input type="text" class="search-input" id="searchBox" placeholder="Search by name...">
-      </div>
-      <div class="filter-group">
-        <select class="filter-select" id="filterGender">
-          <option value="all">All Genders</option>
-          <option value="male">Male</option>
-          <option value="female">Female</option>
-          <option value="unknown">Other</option>
-        </select>
-        <select class="filter-select" id="filterStatus">
-          <option value="all">All Status</option>
-          <option value="living">Living</option>
-          <option value="deceased">Deceased</option>
-        </select>
-      </div>
+      <input type="text" class="search-input" id="sidebarSearch" placeholder="Search lineage..." oninput="filterMembers()">
     </div>
-    
-    <div class="member-list" id="memberList"></div>
-    
-    <div class="stats-container" id="statsBar">
-      <div class="stat-item">
-        <div class="stat-value" id="statTotal">0</div>
-        <div class="stat-label">Total</div>
+    <div class="member-list" id="memberList">
       </div>
-      <div class="stat-item">
-        <div class="stat-value" id="statGen">0</div>
-        <div class="stat-label">Generations</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-value" id="statMale">0</div>
-        <div class="stat-label">Male</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-value" id="statFemale">0</div>
-        <div class="stat-label">Female</div>
-      </div>
-    </div>
   </aside>
 
-  <!-- Canvas Area -->
-  <div class="canvas-container">
-    <div id="emptyState" class="empty-state">
-      <div class="empty-state-icon">🌳</div>
-      <h2>Begin Your Legacy</h2>
-      <p>Click <strong style="color: var(--gold-primary);">Add Member</strong> to start building your family tree,<br>or load the sample to explore the experience.</p>
-    </div>
-    
-    <svg id="treeCanvas"></svg>
-    
-    <!-- Floating Controls -->
-    <div class="canvas-controls">
-      <button class="control-btn" id="zoomIn" title="Zoom In">
-        <i class="fas fa-plus"></i>
-      </button>
-      <button class="control-btn" id="zoomOut" title="Zoom Out">
-        <i class="fas fa-minus"></i>
-      </button>
-      <button class="control-btn" id="resetView" title="Reset View">
-        <i class="fas fa-sync-alt"></i>
-      </button>
-    </div>
-    
-    <!-- Hint Bar -->
-    <div class="hint-bar">
-      <div class="hint-item">
-        <i class="fas fa-mouse"></i>
-        <span>Scroll to zoom</span>
+  <main class="canvas-wrapper">
+    <svg id="familyTree">
+        <g id="treeGroup"></g>
+    </svg>
+  </main>
+</div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal-content">
+    <h2 style="font-family:'Playfair Display'; margin-bottom: 1.5rem; color: var(--accent); font-weight: 400;">Add Ancestor</h2>
+    <form id="memberForm" onsubmit="handleSave(event)">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="mName" class="search-input" required placeholder="e.g. Samuel Mashozhera">
       </div>
-      <div class="hint-item">
-        <i class="fas fa-hand-pointer"></i>
-        <span>Drag to pan</span>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <div class="form-group">
+            <label>Gender</label>
+            <select id="mGender" class="search-input">
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Birth Year</label>
+            <input type="number" id="mBirth" class="search-input" placeholder="1900">
+          </div>
       </div>
-      <div class="hint-item">
-        <i class="fas fa-mouse-pointer"></i>
-        <span>Click node for details</span>
+      <div class="form-group">
+        <label>Parent (Optional)</label>
+        <select id="mParent" class="search-input">
+            <option value="">None (Root)</option>
+        </select>
       </div>
-      <div class="hint-item">
-        <i class="fas fa-keyboard"></i>
-        <span>⌘N new • ESC close</span>
+      <div style="display:flex; gap: 10px; margin-top: 1rem;">
+          <button type="submit" class="btn primary" style="flex:1">Save Entry</button>
+          <button type="button" class="btn" style="flex:1" onclick="closeModal()">Cancel</button>
       </div>
-    </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  /**
+   * STATE MANAGEMENT & PERSISTENCE
+   */
+  const defaultData = {
+    members: [
+        { id: "1", name: "Samuel Mashozhera", birth: 1945, gender: 'male', role: 'Patriarch' }
+    ],
+    links: []
+  };
+
+  let state = JSON.parse(localStorage.getItem('heritage_data')) || defaultData;
+
+  const CONFIG = {
+    NODE_WIDTH: 180,
+    NODE_HEIGHT: 75,
+    LEVEL_GAP: 130,
+    SIBLING_GAP: 40
+  };
+
+  const svg = document.getElementById('familyTree');
+  const treeGroup = document.getElementById('treeGroup');
+
+  /**
+   * LAYOUT ENGINE (RECURSIVE)
+   */
+  function calculateLayout(memberId, level = 0, offset = 0) {
+    const member = state.members.find(m => m.id === memberId);
+    if (!member) return offset;
+
+    const children = state.links
+        .filter(l => l.parent === memberId)
+        .map(l => l.child);
+
+    let currentOffset = offset;
+    children.forEach(childId => {
+        currentOffset = calculateLayout(childId, level + 1, currentOffset);
+    });
+
+    if (children.length === 0) {
+        member.x = offset;
+        currentOffset += CONFIG.NODE_WIDTH + CONFIG.SIBLING_GAP;
+    } else {
+        const first = state.members.find(m => m.id === children[0]);
+        const last = state.members.find(m => m.id === children[children.length - 1]);
+        member.x = (first.x + last.x) / 2;
+    }
+
+    member.y = level * CONFIG.LEVEL_GAP + 60;
+    return currentOffset;
+  }
+
+  /**
+   * RENDER LOGIC
+   */
+  function render() {
+    treeGroup.innerHTML = '';
     
-    <!-- Legend -->
-    <div class="legend-panel">
-      <div class="
+    // Find Roots (Members with no parents)
+    const childIds = new Set(state.links.map(l => l.child));
+    const roots = state.members.filter(m => !childIds.has(m.id));
+
+    let globalOffset = 100;
+    roots.forEach(root => {
+        globalOffset = calculateLayout(root.id, 0, globalOffset) + CONFIG.SIBLING_GAP * 2;
+    });
+
+    // Draw Connectors
+    state.links.forEach(link => {
+        const p = state.members.find(m => m.id === link.parent);
+        const c = state.members.find(m => m.id === link.child);
+        if (!p || !c) return;
+
+        const startX = p.x + (CONFIG.NODE_WIDTH / 2);
+        const startY = p.y + CONFIG.NODE_HEIGHT;
+        const endX = c.x + (CONFIG.NODE_WIDTH / 2);
+        const endY = c.y;
+
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        const midY = (startY + endY) / 2;
+        path.setAttribute("d", `M ${startX} ${startY} C ${startX} ${midY}, ${endX} ${midY}, ${endX} ${endY}`);
+        path.setAttribute("class", "connector");
+        treeGroup.appendChild(path);
+    });
+
+    // Draw Nodes
+    state.members.forEach(m => {
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        g.setAttribute("class", "node-group");
+        g.style.transform = `translate(${m.x}px, ${m.y}px)`;
+
+        const color = m.gender === 'male' ? 'var(--male)' : 'var(--female)';
+        
+        g.innerHTML = `
+            <rect width="${CONFIG.NODE_WIDTH}" height="${CONFIG.NODE_HEIGHT}" class="node-rect" style="stroke: ${color}"></rect>
+            <text x="15" y="30" class="node-text-name">${m.name}</text>
+            <text x="15" y="52" class="node-text-meta">${m.gender.toUpperCase()} • BORN ${m.birth || 'N/A'}</text>
+        `;
+        treeGroup.appendChild(g);
+    });
+
+    updateSidebar();
+    saveData();
+  }
+
+  function updateSidebar() {
+    const list = document.getElementById('memberList');
+    const parentSelect = document.getElementById('mParent');
+    
+    list.innerHTML = '';
+    parentSelect.innerHTML = '<option value="">None (Root)</option>';
+
+    state.members.sort((a,b) => a.name.localeCompare(b.name)).forEach(m => {
+        // List
+        const card = document.createElement('div');
+        card.className = 'member-card';
+        const color = m.gender === 'male' ? 'var(--male)' : 'var(--female)';
+        card.innerHTML = `
+            <div class="avatar-sm" style="background:${color}">${m.name[0]}</div>
+            <div>
+                <div style="font-size:0.85rem; font-weight:600">${m.name}</div>
+                <div style="font-size:0.7rem; color:var(--text-muted)">${m.birth || 'Unknown'}</div>
+            </div>
+        `;
+        list.appendChild(card);
+
+        // Select Options
+        const opt = document.createElement('option');
+        opt.value = m.id;
+        opt.textContent = m.name;
+        parentSelect.appendChild(opt);
+    });
+  }
+
+  /**
+   * UI INTERACTIONS
+   */
+  function handleSave(e) {
+    e.preventDefault();
+    const id = Date.now().toString();
+    const newMember = {
+        id,
+        name: document.getElementById('mName').value,
+        gender: document.getElementById('mGender').value,
+        birth: document.getElementById('mBirth').value,
+        role: 'Descendant'
+    };
+
+    state.members.push(newMember);
+    const parentId = document.getElementById('mParent').value;
+    if (parentId) {
+        state.links.push({ parent: parentId, child: id });
+    }
+
+    closeModal();
+    render();
+    e.target.reset();
+  }
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('active');
+    document.getElementById('sidebar').classList.toggle('collapsed');
+  }
+
+  function openAddModal() { document.getElementById('modal').classList.add('active'); }
+  function closeModal() { document.getElementById('modal').classList.remove('active'); }
+  function saveData() { localStorage.setItem('heritage_data', JSON.stringify(state)); }
+
+  // PAN & ZOOM
+  let isDragging = false;
+  let startPos = { x: 0, y: 0 };
+  let transform = { x: 0, y: 0, s: 1 };
+
+  svg.addEventListener('mousedown', e => {
+    if(e.target === svg) {
+        isDragging = true;
+        startPos = { x: e.clientX - transform.x, y: e.clientY - transform.y };
+    }
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    transform.x = e.clientX - startPos.x;
+    transform.y = e.clientY - startPos.y;
+    treeGroup.setAttribute('transform', `translate(${transform.x}, ${transform.y}) scale(${transform.s})`);
+  });
+
+  window.addEventListener('mouseup', () => isDragging = false);
+
+  svg.addEventListener('wheel', e => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    transform.s *= delta;
+    treeGroup.setAttribute('transform', `translate(${transform.x}, ${transform.y}) scale(${transform.s})`);
+  });
+
+  // Init
+  render();
+  console.log("System Initialized by K.Mash the HITMAKER");
+</script>
+</body>
+</html>
