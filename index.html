@@ -1,692 +1,1421 @@
-Here is an HTML document that implements a complete family tree web application with secure login and automatic hierarchical tree layout.
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Nhaka — The Living Chronicle | Family Tree & Heritage</title>
-    <!-- Fonts & Styling -->
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Nhaka — The Living Chronicle of Your Family. Build, preserve and share your Zimbabwean family heritage.">
+<title>Nhaka — The Living Chronicle</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root {
+  --navy: #0d1b3e;
+  --navy-mid: #162040;
+  --navy-light: #1e2f5c;
+  --navy-pale: #243570;
+  --gold: #c9a84c;
+  --gold-bright: #e8c468;
+  --gold-dim: #7a6128;
+  --gold-pale: #f5e9c8;
+  --white: #ffffff;
+  --off-white: #f8f6f0;
+  --slate: #e2ddd5;
+  --text-muted: #8a8575;
+  --male-color: #1e4080;
+  --female-color: #7a2050;
+  --glass: rgba(13,27,62,0.82);
+  --glass-light: rgba(255,255,255,0.05);
+  --border-gold: rgba(201,168,76,0.25);
+  --border-gold-strong: rgba(201,168,76,0.55);
+  --shadow: 0 8px 32px rgba(0,0,0,0.45);
+  --shadow-card: 0 2px 12px rgba(0,0,0,0.35);
+}
 
-        :root {
-            --deep-charcoal: #0f172a;
-            --slate-dark: #1e293b;
-            --gold-sacred: #c9a84c;
-            --gold-light: #e9c468;
-            --gold-dim: #9e7e3a;
-            --ivory: #f8f4e8;
-            --stone: #94a3b8;
-            --male-accent: #2c5282;
-            --female-accent: #9b2c6b;
-            --border-glow: rgba(201, 168, 76, 0.4);
-            --card-bg: rgba(30, 41, 59, 0.85);
-            --shadow-xl: 0 20px 35px -12px rgba(0, 0, 0, 0.5);
-        }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: radial-gradient(circle at 10% 30%, #0a0f1c, #03050b);
-            color: var(--ivory);
-            height: 100vh;
-            overflow: hidden;
-            position: relative;
-        }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--navy);
+  color: var(--white);
+  height: 100vh;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
 
-        /* login overlay */
-        .login-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(3, 5, 11, 0.96);
-            backdrop-filter: blur(12px);
-            z-index: 10000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.4s ease;
-        }
+/* GRAIN OVERLAY */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 9999;
+}
 
-        .login-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-glow);
-            border-radius: 2rem;
-            padding: 2.5rem;
-            width: 90%;
-            max-width: 440px;
-            text-align: center;
-            box-shadow: var(--shadow-xl);
-            transform: translateY(0);
-            transition: transform 0.3s;
-        }
+/* HEADER */
+header {
+  height: 68px;
+  background: rgba(13,27,62,0.97);
+  border-bottom: 1px solid var(--border-gold);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  position: relative;
+  z-index: 500;
+  backdrop-filter: blur(20px);
+}
 
-        .login-logo {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 3rem;
-            font-weight: 700;
-            color: var(--gold-sacred);
-            margin-bottom: 0.5rem;
-        }
+.logo-area { display: flex; align-items: center; gap: 14px; }
+.logo-emblem {
+  width: 42px; height: 42px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
+  box-shadow: 0 0 18px rgba(201,168,76,0.35);
+}
+.logo-text .brand { font-family: 'Cormorant Garamond', serif; font-size: 1.35rem; font-weight: 700; color: var(--gold); letter-spacing: 3px; text-transform: uppercase; }
+.logo-text .tagline { font-size: 0.62rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2.5px; margin-top: 1px; }
 
-        .login-tagline {
-            font-size: 0.75rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: var(--stone);
-            margin-bottom: 2rem;
-        }
+.header-right { display: flex; align-items: center; gap: 10px; }
 
-        .login-input-group {
-            margin: 1.2rem 0;
-        }
+.btn {
+  background: transparent;
+  border: 1px solid var(--border-gold);
+  color: var(--off-white);
+  padding: 8px 18px;
+  border-radius: 7px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: flex; align-items: center; gap: 7px;
+  white-space: nowrap;
+}
+.btn:hover { background: rgba(201,168,76,0.12); border-color: var(--gold); color: var(--gold); }
+.btn.gold { background: var(--gold); color: var(--navy); border-color: var(--gold); font-weight: 600; }
+.btn.gold:hover { background: var(--gold-bright); box-shadow: 0 0 20px rgba(201,168,76,0.4); }
+.btn.danger { border-color: rgba(180,60,60,0.5); color: #e08080; }
+.btn.danger:hover { background: rgba(180,60,60,0.15); border-color: #c05050; }
 
-        .login-input {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-glow);
-            padding: 12px 16px;
-            border-radius: 60px;
-            color: white;
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.2s;
-        }
+/* MAIN LAYOUT */
+.app { display: flex; height: calc(100vh - 68px); }
 
-        .login-input:focus {
-            border-color: var(--gold-light);
-            background: rgba(255, 255, 255, 0.1);
-        }
+/* SIDEBAR */
+.sidebar {
+  width: 310px;
+  min-width: 310px;
+  background: rgba(10,18,42,0.9);
+  border-right: 1px solid var(--border-gold);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+  overflow: hidden;
+}
+.sidebar.hidden { width: 0; min-width: 0; border-right: none; }
 
-        .btn-gold {
-            background: var(--gold-sacred);
-            border: none;
-            color: #0a0f1c;
-            font-weight: 600;
-            padding: 12px 24px;
-            border-radius: 40px;
-            width: 100%;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: 0.2s;
-        }
+.sidebar-top {
+  padding: 1.2rem;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.search-bar {
+  position: relative;
+}
+.search-bar input {
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border-gold);
+  color: var(--white);
+  padding: 10px 14px 10px 36px;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-bar input:focus { border-color: var(--gold); background: rgba(255,255,255,0.07); }
+.search-bar .search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); opacity: 0.4; font-size: 0.9rem; }
 
-        .btn-gold:hover {
-            background: var(--gold-light);
-            transform: scale(0.98);
-        }
+.sidebar-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.stat-pill {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 8px;
+  padding: 8px 10px;
+  text-align: center;
+}
+.stat-pill .num { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 600; color: var(--gold); line-height: 1; }
+.stat-pill .lbl { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 3px; }
 
-        /* main layout */
-        .app-container {
-            display: flex;
-            height: 100vh;
-            flex-direction: column;
-        }
+.member-list { flex: 1; overflow-y: auto; padding: 0.8rem; }
+.member-list::-webkit-scrollbar { width: 4px; }
+.member-list::-webkit-scrollbar-thumb { background: var(--border-gold); border-radius: 2px; }
 
-        .top-bar {
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-glow);
-            padding: 0.8rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 100;
-        }
+.member-card {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 11px;
+  margin-bottom: 5px;
+  border-radius: 9px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+  position: relative;
+}
+.member-card:hover { background: rgba(201,168,76,0.06); border-color: var(--border-gold); }
+.member-card.selected { background: rgba(201,168,76,0.1); border-color: var(--gold-dim); }
+.member-card .avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.8rem; color: #fff;
+  flex-shrink: 0;
+}
+.member-card .info .name { font-size: 0.84rem; font-weight: 500; color: var(--off-white); line-height: 1.3; }
+.member-card .info .meta { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+.member-card .rel-badge {
+  margin-left: auto;
+  font-size: 0.6rem;
+  background: rgba(201,168,76,0.15);
+  color: var(--gold);
+  border: 1px solid var(--border-gold);
+  padding: 2px 7px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
 
-        .logo-area {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+/* CANVAS */
+.canvas-area {
+  flex: 1;
+  position: relative;
+  background: radial-gradient(ellipse at 30% 20%, rgba(30,47,92,0.6) 0%, var(--navy) 70%);
+  overflow: hidden;
+}
 
-        .logo-icon {
-            font-size: 2rem;
-        }
+.canvas-toolbar {
+  position: absolute;
+  top: 1.2rem; right: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 100;
+}
+.tool-btn {
+  width: 38px; height: 38px;
+  background: rgba(13,27,62,0.9);
+  border: 1px solid var(--border-gold);
+  border-radius: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  transition: all 0.2s;
+}
+.tool-btn:hover { background: rgba(201,168,76,0.15); color: var(--gold); border-color: var(--gold); }
 
-        .brand-text {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.4rem;
-            font-weight: 600;
-            color: var(--gold-sacred);
-            letter-spacing: 1px;
-        }
+.canvas-info {
+  position: absolute;
+  bottom: 1.2rem; left: 50%;
+  transform: translateX(-50%);
+  background: rgba(13,27,62,0.88);
+  border: 1px solid var(--border-gold);
+  padding: 7px 16px;
+  border-radius: 30px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  pointer-events: none;
+}
 
-        .controls {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
+#treeCanvas { width: 100%; height: 100%; cursor: grab; display: block; }
+#treeCanvas:active { cursor: grabbing; }
 
-        .icon-btn {
-            background: transparent;
-            border: 1px solid var(--border-glow);
-            color: var(--ivory);
-            padding: 6px 14px;
-            border-radius: 40px;
-            font-size: 0.75rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+/* MODAL OVERLAY */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5,10,25,0.88);
+  backdrop-filter: blur(10px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.overlay.open { opacity: 1; pointer-events: all; }
 
-        .icon-btn:hover {
-            background: rgba(201, 168, 76, 0.2);
-            border-color: var(--gold-light);
-        }
+.modal {
+  background: var(--navy-light);
+  border: 1px solid var(--border-gold-strong);
+  border-radius: 18px;
+  padding: 2.2rem;
+  width: 92%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.7);
+  transform: translateY(20px) scale(0.97);
+  transition: transform 0.3s;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-gold) transparent;
+}
+.overlay.open .modal { transform: translateY(0) scale(1); }
 
-        .main-workspace {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
+.modal-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--gold);
+  margin-bottom: 1.6rem;
+  letter-spacing: 0.5px;
+}
+.modal-title span { font-weight: 300; color: var(--text-muted); font-size: 1rem; margin-left: 8px; font-family: 'DM Sans'; }
 
-        .tree-panel {
-            flex: 1;
-            position: relative;
-            background: radial-gradient(ellipse at 30% 40%, rgba(5, 10, 25, 0.5), #03050b);
-            overflow: hidden;
-        }
+.form-section-title {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--gold-dim);
+  margin-bottom: 0.8rem;
+  margin-top: 1.4rem;
+  border-bottom: 1px solid var(--border-gold);
+  padding-bottom: 6px;
+}
 
-        #familyCanvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-            cursor: grab;
-        }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; font-size: 0.72rem; color: var(--gold); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 6px; }
 
-        #familyCanvas:active {
-            cursor: grabbing;
-        }
+.form-control {
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--white);
+  padding: 10px 13px;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.84rem;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  appearance: none;
+}
+.form-control:focus { border-color: var(--gold); background: rgba(255,255,255,0.08); }
+.form-control option { background: var(--navy-light); color: var(--white); }
+.form-control::placeholder { color: rgba(255,255,255,0.2); }
 
-        .info-sidebar {
-            width: 0;
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(16px);
-            border-left: 1px solid var(--border-glow);
-            transition: width 0.3s ease;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
+.form-actions { display: flex; gap: 10px; margin-top: 1.8rem; }
 
-        .info-sidebar.open {
-            width: 320px;
-        }
+/* SIGN IN SCREEN */
+.signin-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--navy);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+.signin-screen.hidden { display: none; }
 
-        .profile-detail {
-            padding: 1.8rem;
-            overflow-y: auto;
-        }
+.signin-bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(30,47,92,0.8) 0%, var(--navy) 70%);
+}
+.signin-deco {
+  position: absolute;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  border: 1px solid rgba(201,168,76,0.06);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+}
+.signin-deco::before {
+  content: '';
+  position: absolute;
+  inset: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(201,168,76,0.08);
+}
+.signin-deco::after {
+  content: '';
+  position: absolute;
+  inset: 100px;
+  border-radius: 50%;
+  border: 1px solid rgba(201,168,76,0.1);
+}
 
-        .avatar-circle {
-            width: 90px;
-            height: 90px;
-            background: var(--slate-dark);
-            border-radius: 50%;
-            margin: 0 auto 1rem;
-            border: 2px solid var(--gold-sacred);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            font-weight: bold;
-            background-size: cover;
-            background-position: center;
-        }
+.signin-card {
+  position: relative;
+  background: rgba(22,32,64,0.97);
+  border: 1px solid var(--border-gold-strong);
+  border-radius: 20px;
+  padding: 2.8rem 2.5rem;
+  width: 90%;
+  max-width: 420px;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+}
+.signin-logo { text-align: center; margin-bottom: 2rem; }
+.signin-logo .emblem {
+  width: 64px; height: 64px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem;
+  margin: 0 auto 14px;
+  box-shadow: 0 0 30px rgba(201,168,76,0.3);
+}
+.signin-logo h1 { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 700; color: var(--gold); letter-spacing: 4px; }
+.signin-logo p { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 3px; margin-top: 4px; }
 
-        .detail-name {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.5rem;
-            text-align: center;
-            font-weight: 600;
-        }
+.user-switcher {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 1.5rem;
+}
+.user-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.user-option:hover { background: rgba(201,168,76,0.08); border-color: var(--border-gold); }
+.user-option.active { background: rgba(201,168,76,0.1); border-color: var(--gold-dim); }
+.user-option .u-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.8rem; color: var(--navy);
+  flex-shrink: 0;
+}
+.user-option .u-name { font-size: 0.9rem; font-weight: 500; }
+.user-option .u-role { font-size: 0.68rem; color: var(--text-muted); }
+.user-option .check { margin-left: auto; color: var(--gold); font-size: 1.1rem; display: none; }
+.user-option.active .check { display: block; }
 
-        .detail-row {
-            margin: 0.8rem 0;
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
-            padding-bottom: 6px;
-        }
+.signin-divider { display: flex; align-items: center; gap: 12px; margin: 1rem 0; }
+.signin-divider span { font-size: 0.7rem; color: var(--text-muted); white-space: nowrap; }
+.signin-divider::before, .signin-divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.08); }
 
-        .detail-label {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            color: var(--gold-dim);
-            letter-spacing: 1px;
-        }
+/* DETAIL PANEL */
+.detail-panel {
+  width: 0;
+  background: rgba(10,18,42,0.95);
+  border-left: 1px solid var(--border-gold);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+  overflow: hidden;
+}
+.detail-panel.open { width: 280px; min-width: 280px; }
+.detail-inner { padding: 1.5rem; }
+.detail-avatar {
+  width: 64px; height: 64px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 1.4rem; color: #fff;
+  margin: 0 auto 1rem;
+  border: 2px solid var(--border-gold-strong);
+}
+.detail-name { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 600; text-align: center; color: var(--off-white); }
+.detail-role { text-align: center; font-size: 0.7rem; color: var(--gold); text-transform: uppercase; letter-spacing: 2px; margin-top: 4px; }
+.detail-divider { height: 1px; background: var(--border-gold); margin: 1rem 0; }
+.detail-field { margin-bottom: 0.9rem; }
+.detail-field .lbl { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 3px; }
+.detail-field .val { font-size: 0.85rem; color: var(--off-white); }
+.detail-actions { padding: 1rem 1.5rem; border-top: 1px solid var(--border-gold); display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
 
-        .detail-value {
-            font-size: 0.9rem;
-            margin-top: 4px;
-        }
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 1.5rem; right: 1.5rem;
+  background: var(--navy-light);
+  border: 1px solid var(--border-gold-strong);
+  border-left: 3px solid var(--gold);
+  color: var(--off-white);
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-size: 0.83rem;
+  z-index: 9999;
+  transform: translateX(120%);
+  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+.toast.show { transform: translateX(0); }
 
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-            margin-top: 1.8rem;
-            flex-wrap: wrap;
-        }
+/* USER BADGE */
+.user-badge {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-gold);
+  border-radius: 30px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  color: var(--off-white);
+  transition: all 0.2s;
+}
+.user-badge:hover { background: rgba(201,168,76,0.1); }
+.user-badge .mini-avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem; font-weight: 700; color: var(--navy);
+}
 
-        .small-btn {
-            background: transparent;
-            border: 1px solid var(--border-glow);
-            padding: 6px 12px;
-            border-radius: 30px;
-            color: white;
-            font-size: 0.7rem;
-            cursor: pointer;
-        }
+/* EXPORT OPTIONS */
+.export-options {
+  position: absolute;
+  bottom: 1.2rem; right: 5.5rem;
+  background: rgba(13,27,62,0.97);
+  border: 1px solid var(--border-gold-strong);
+  border-radius: 12px;
+  padding: 0.5rem;
+  z-index: 200;
+  display: none;
+  gap: 4px;
+  flex-direction: column;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+  min-width: 160px;
+}
+.export-options.open { display: flex; }
+.export-opt {
+  padding: 9px 14px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 8px;
+  color: var(--off-white);
+  transition: background 0.2s;
+}
+.export-opt:hover { background: rgba(201,168,76,0.12); color: var(--gold); }
 
-        .toast-message {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #1e293b;
-            border-left: 4px solid var(--gold-sacred);
-            padding: 12px 20px;
-            border-radius: 12px;
-            z-index: 2000;
-            transform: translateX(150%);
-            transition: transform 0.3s;
-        }
+/* LOADING */
+.loading-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-bright));
+  z-index: 99999;
+  width: 0%;
+  transition: width 0.4s;
+}
 
-        .toast-message.show {
-            transform: translateX(0);
-        }
-
-        .tooltip-info {
-            position: absolute;
-            bottom: 16px;
-            left: 16px;
-            font-size: 0.7rem;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 4px 12px;
-            border-radius: 20px;
-            pointer-events: none;
-        }
-    </style>
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .sidebar { position: fixed; left: 0; top: 68px; bottom: 0; z-index: 400; transform: translateX(-100%); }
+  .sidebar.visible { transform: translateX(0); }
+  .sidebar.hidden { transform: translateX(-100%); width: 310px; min-width: 310px; }
+  .detail-panel.open { position: fixed; right: 0; top: 68px; bottom: 0; z-index: 400; width: 280px; min-width: 280px; }
+  header { padding: 0 1rem; }
+  .btn span { display: none; }
+  .btn { padding: 8px 10px; }
+}
+</style>
 </head>
 <body>
 
-<!-- SECURE LOGIN LAYER -->
-<div id="loginOverlay" class="login-overlay">
-    <div class="login-card">
-        <div class="login-logo">🌳 NHAKA</div>
-        <div class="login-tagline">THE LIVING CHRONICLE</div>
-        <div class="login-input-group">
-            <input type="text" id="userFullName" class="login-input" placeholder="Your name (Keeper)" autocomplete="off">
-        </div>
-        <div class="login-input-group">
-            <input type="password" id="userPin" class="login-input" maxlength="6" placeholder="Set 4-6 digit PIN" autocomplete="off">
-        </div>
-        <button class="btn-gold" id="loginBtn">✦ Begin Chronicle ✦</button>
-        <p style="font-size: 0.7rem; margin-top: 1rem; opacity: 0.6;">Private vault · Encrypted locally</p>
+<div class="loading-bar" id="loadingBar"></div>
+
+<!-- SIGN IN -->
+<div class="signin-screen" id="signinScreen">
+  <div class="signin-bg"></div>
+  <div class="signin-deco"></div>
+  <div class="signin-card">
+    <div class="signin-logo">
+      <div class="emblem">🌳</div>
+      <h1>NHAKA</h1>
+      <p>The Living Chronicle</p>
     </div>
+    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:1rem; text-align:center; letter-spacing:0.5px;">Select your profile to continue</p>
+    <div class="user-switcher" id="userSwitcher"></div>
+    <div class="signin-divider"><span>or create new profile</span></div>
+    <button class="btn gold" style="width:100%; justify-content:center;" onclick="showNewUserModal()">＋ New Profile</button>
+  </div>
 </div>
 
-<div class="app-container" style="display: none;" id="mainApp">
-    <div class="top-bar">
-        <div class="logo-area">
-            <div class="logo-icon">🌍</div>
-            <div class="brand-text">Nhaka — The Living Chronicle</div>
-        </div>
-        <div class="controls">
-            <button class="icon-btn" id="addMemberBtn">➕ Add Member</button>
-            <button class="icon-btn" id="exportTreeBtn">📥 Export</button>
-            <button class="icon-btn" id="importTriggerBtn">📂 Import JSON</button>
-            <button class="icon-btn" id="toggleSidebarBtn">👤 Details</button>
-            <button class="icon-btn" id="resetViewBtn">⟳ Reset View</button>
-        </div>
+<!-- HEADER -->
+<header>
+  <div class="logo-area">
+    <div class="logo-emblem">🌳</div>
+    <div class="logo-text">
+      <div class="brand">NHAKA</div>
+      <div class="tagline">The Living Chronicle</div>
     </div>
-    <div class="main-workspace">
-        <div class="tree-panel">
-            <canvas id="familyCanvas" width="1000" height="800"></canvas>
-            <div class="tooltip-info">🖱️ Drag to pan | Scroll to zoom | Click on any node → view legacy</div>
-        </div>
-        <div class="info-sidebar" id="infoSidebar">
-            <div class="profile-detail" id="profileContent">
-                <!-- dynamic member detail -->
-                <div style="text-align: center; opacity: 0.6;">Select a relative to unveil their story</div>
-            </div>
-        </div>
+  </div>
+  <div class="header-right">
+    <button class="btn" onclick="toggleSidebar()" title="Members">☰ <span>Members</span></button>
+    <button class="btn" onclick="exportPDF()">⬇ <span>Export PDF</span></button>
+    <button class="btn gold" onclick="openAddModal()">＋ <span>Add Member</span></button>
+    <div class="user-badge" id="userBadge" onclick="switchUser()">
+      <div class="mini-avatar" id="badgeAvatar">?</div>
+      <span id="badgeName">Guest</span>
     </div>
+  </div>
+</header>
+
+<!-- MAIN APP -->
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search lineage…" oninput="filterMembers()">
+      </div>
+    </div>
+    <div class="sidebar-stats" id="sidebarStats">
+      <div class="stat-pill"><div class="num" id="statTotal">0</div><div class="lbl">Members</div></div>
+      <div class="stat-pill"><div class="num" id="statGens">0</div><div class="lbl">Generations</div></div>
+    </div>
+    <div class="member-list" id="memberList"></div>
+  </aside>
+
+  <main class="canvas-area" id="canvasArea">
+    <svg id="treeCanvas">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(201,168,76,0.4)"/>
+        </marker>
+      </defs>
+      <g id="treeGroup"></g>
+    </svg>
+    <div class="canvas-toolbar">
+      <button class="tool-btn" onclick="zoom(1.2)" title="Zoom In">＋</button>
+      <button class="tool-btn" onclick="zoom(0.8)" title="Zoom Out">－</button>
+      <button class="tool-btn" onclick="resetView()" title="Reset View">⌂</button>
+      <button class="tool-btn" onclick="toggleExport()" title="Export">⬇</button>
+    </div>
+    <div class="export-options" id="exportOptions">
+      <div class="export-opt" onclick="exportPDF()">📄 Export as PDF</div>
+      <div class="export-opt" onclick="exportJSON()">💾 Export as JSON</div>
+      <div class="export-opt" onclick="importJSON()">📂 Import JSON</div>
+    </div>
+    <div class="canvas-info">Drag to pan · Scroll to zoom · Click member to inspect</div>
+  </main>
+
+  <div class="detail-panel" id="detailPanel">
+    <div class="detail-inner" id="detailInner"></div>
+    <div class="detail-actions" id="detailActions"></div>
+  </div>
 </div>
 
-<div id="toastContainer" class="toast-message"></div>
+<!-- ADD MEMBER MODAL -->
+<div class="overlay" id="addOverlay">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">Add Member <span>to the chronicle</span></div>
 
-<!-- Hidden file input for import -->
-<input type="file" id="jsonImportFile" accept=".json" style="display: none">
-
-<!-- Add / Edit Modal (simple inline dialog) -->
-<div id="memberModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); backdrop-filter:blur(6px); z-index:2000; justify-content:center; align-items:center;">
-    <div style="background:#1e293b; border:1px solid #c9a84c; border-radius:2rem; width:90%; max-width:600px; max-height:85vh; overflow-y:auto; padding:2rem;">
-        <h2 style="color:#c9a84c; margin-bottom:1rem;" id="modalTitle">Add Family Member</h2>
-        <input type="hidden" id="editId">
-        <div style="display:grid; gap:1rem">
-            <input type="text" id="memName" placeholder="Full name" class="login-input">
-            <div style="display:flex; gap:1rem">
-                <select id="memGender" class="login-input"><option value="male">Male (Son / Father)</option><option value="female">Female (Daughter / Mother)</option></select>
-                <select id="memGenerationRole" class="login-input"><option value="">Role / Generation hint</option><option value="patriarch">Great Grandfather / Matriarch</option><option value="grandfather">Grandfather</option><option value="father">Father</option><option value="self">Current Head</option><option value="son">Son</option><option value="grandson">Grandson</option></select>
-            </div>
-            <input type="text" id="memBirth" placeholder="Birth year (e.g., 1950)" class="login-input">
-            <input type="text" id="memDeath" placeholder="Death year (if applicable)" class="login-input">
-            <input type="text" id="memProfession" placeholder="Profession / Legacy" class="login-input">
-            <input type="text" id="memTotem" placeholder="Totem (Moyo, Shumba, etc.)" class="login-input">
-            <input type="text" id="memVillage" placeholder="Village / Hometown" class="login-input">
-            <textarea id="memNotes" rows="2" placeholder="Ancestral notes, achievements..." class="login-input"></textarea>
-            <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:1rem">
-                <button class="icon-btn" id="closeModalBtn">Cancel</button>
-                <button class="btn-gold" id="saveMemberBtn" style="width:auto; padding:8px 20px;">Save & Connect</button>
-            </div>
-        </div>
+    <div class="form-section-title">Personal Details</div>
+    <div class="form-group">
+      <label>Full Name *</label>
+      <input type="text" id="mName" class="form-control" placeholder="e.g. Tariro Mashozhera" required>
     </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Gender *</label>
+        <select id="mGender" class="form-control">
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Relationship *</label>
+        <select id="mRelationship" class="form-control">
+          <option value="Patriarch">Patriarch</option>
+          <option value="Matriarch">Matriarch</option>
+          <option value="Father">Father</option>
+          <option value="Mother">Mother</option>
+          <option value="Son">Son</option>
+          <option value="Daughter">Daughter</option>
+          <option value="Brother">Brother</option>
+          <option value="Sister">Sister</option>
+          <option value="Grandfather">Grandfather</option>
+          <option value="Grandmother">Grandmother</option>
+          <option value="Uncle">Uncle</option>
+          <option value="Aunt">Aunt</option>
+          <option value="Nephew">Nephew</option>
+          <option value="Niece">Niece</option>
+          <option value="Cousin">Cousin</option>
+          <option value="Husband">Husband</option>
+          <option value="Wife">Wife</option>
+          <option value="Ancestor">Ancestor</option>
+          <option value="Descendant">Descendant</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Birth Year</label>
+        <input type="number" id="mBirth" class="form-control" placeholder="1940">
+      </div>
+      <div class="form-group">
+        <label>Death Year</label>
+        <input type="number" id="mDeath" class="form-control" placeholder="(if deceased)">
+      </div>
+    </div>
+
+    <div class="form-section-title">Heritage &amp; Origins</div>
+    <div class="form-group">
+      <label>Totem (Mutupo) *</label>
+      <select id="mTotem" class="form-control" onchange="checkOtherTotem()">
+        <option value="">— Select Totem —</option>
+        <option value="Shumba">Shumba (Lion)</option>
+        <option value="Mhofu">Mhofu (Eland)</option>
+        <option value="Nzou">Nzou (Elephant)</option>
+        <option value="Mbeva">Mbeva (Rat)</option>
+        <option value="Mvura">Mvura (Rain)</option>
+        <option value="Tembo">Tembo (Zebra)</option>
+        <option value="Shava">Shava (Eland variant)</option>
+        <option value="Nhari">Nhari (Eagle)</option>
+        <option value="Hove">Hove (Fish)</option>
+        <option value="Dziva">Dziva (Pool/Lake)</option>
+        <option value="Gwai">Gwai (Tobacco)</option>
+        <option value="Hungwe">Hungwe (Fish Eagle)</option>
+        <option value="Mwari">Mwari (God)</option>
+        <option value="Chirandu">Chirandu</option>
+        <option value="Mazai">Mazai (Eggs)</option>
+        <option value="Muturikwa">Muturikwa</option>
+        <option value="Samanyika">Samanyika</option>
+        <option value="Tsoko">Tsoko (Monkey)</option>
+        <option value="Nyamuzihwa">Nyamuzihwa</option>
+        <option value="Hwesa">Hwesa</option>
+        <option value="Manyika">Manyika</option>
+        <option value="Gumbo">Gumbo (Leg)</option>
+        <option value="Zenda">Zenda</option>
+        <option value="Nyati">Nyati (Buffalo)</option>
+        <option value="Ngwe">Ngwe (Leopard)</option>
+        <option value="Sokwanele">Sokwanele</option>
+        <option value="Pfumojena">Pfumojena (White Spear)</option>
+        <option value="Museyamwa">Museyamwa</option>
+        <option value="Chipfuriro">Chipfuriro</option>
+        <option value="Charambatemwa">Charambatemwa</option>
+        <option value="Musariri">Musariri</option>
+        <option value="Nhire">Nhire</option>
+        <option value="Makumbe">Makumbe</option>
+        <option value="Nyandoro">Nyandoro</option>
+        <option value="Murehwa">Murehwa</option>
+        <option value="Dombojena">Dombojena (White Rock)</option>
+        <option value="Mhara">Mhara (Impala)</option>
+        <option value="Karigamombe">Karigamombe</option>
+        <option value="Zumba">Zumba</option>
+        <option value="Mbereko">Mbereko (Goat skin)</option>
+        <option value="Matemai">Matemai</option>
+        <option value="Other">Other (specify below)</option>
+      </select>
+    </div>
+    <div class="form-group" id="otherTotemGroup" style="display:none;">
+      <label>Specify Totem</label>
+      <input type="text" id="mTotemOther" class="form-control" placeholder="Enter your totem">
+    </div>
+    <div class="form-group">
+      <label>Village of Origin (Musha)</label>
+      <input type="text" id="mVillage" class="form-control" placeholder="e.g. Murewa, Buhera…">
+    </div>
+    <div class="form-group">
+      <label>District / Province</label>
+      <input type="text" id="mDistrict" class="form-control" placeholder="e.g. Mashonaland East">
+    </div>
+
+    <div class="form-section-title">Family Link</div>
+    <div class="form-group">
+      <label>Parent / Connected To</label>
+      <select id="mParent" class="form-control">
+        <option value="">None (Root ancestor)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Notes / Story</label>
+      <textarea id="mNotes" class="form-control" rows="3" placeholder="Life story, achievements, memorable details…" style="resize:vertical;"></textarea>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn gold" style="flex:1; justify-content:center;" onclick="saveMember()">Save to Chronicle</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
 </div>
+
+<!-- NEW USER MODAL -->
+<div class="overlay" id="newUserOverlay">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-title">New Profile</div>
+    <div class="form-group">
+      <label>Full Name</label>
+      <input type="text" id="nuName" class="form-control" placeholder="Your full name">
+    </div>
+    <div class="form-group">
+      <label>Role / Title</label>
+      <input type="text" id="nuRole" class="form-control" placeholder="e.g. Family Historian">
+    </div>
+    <div class="form-actions">
+      <button class="btn gold" style="flex:1; justify-content:center;" onclick="createUser()">Create Profile</button>
+      <button class="btn" onclick="closeNewUserModal()">Back</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
 
 <script>
-    // -------------------- SECURE STORAGE & ENCRYPTION (simulated hash for privacy) --------------------
-    let currentUser = null;
-    let familyData = {
-        members: [],    // each: { id, name, gender, birthYear, deathYear, profession, totem, village, notes, generationLevel, parentId, spouseId }
-        marriages: []   // optional spouse linking (for horizontal alignment)
-    };
-    let selectedMemberId = null;
-    let canvasTransform = { scale: 1, offsetX: 400, offsetY: 200 };
-    let isDragging = false;
-    let dragStart = { x: 0, y: 0 };
+/* ============================================================
+   STATE & PERSISTENCE
+   ============================================================ */
+const STORE_KEY = 'nhaka_v3';
+const USERS_KEY = 'nhaka_users_v3';
 
-    // Helper: save encrypted to localStorage (base64 + prefix)
-    function storeFamilyData() {
-        if (!currentUser) return;
-        const exportData = {
-            members: familyData.members,
-            marriages: familyData.marriages,
-            meta: { user: currentUser.name, version: "2.0" }
-        };
-        const jsonStr = JSON.stringify(exportData);
-        const encoded = btoa(encodeURIComponent(jsonStr));
-        localStorage.setItem(`nhaka_secure_${currentUser.id}`, encoded);
-        showToast("🌿 Chronicle saved automatically");
-    }
+const defaultUsers = [
+  { id: 'u1', name: 'Mashozhera Family', role: 'Primary Historian' },
+  { id: 'u2', name: 'Guest Researcher', role: 'Viewer' }
+];
 
-    function loadFamilyData() {
-        if (!currentUser) return;
-        const raw = localStorage.getItem(`nhaka_secure_${currentUser.id}`);
-        if (raw) {
-            try {
-                const decoded = decodeURIComponent(atob(raw));
-                const parsed = JSON.parse(decoded);
-                familyData.members = parsed.members || [];
-                familyData.marriages = parsed.marriages || [];
-                if (familyData.members.length === 0) seedDefaultTree();
-            } catch(e) { seedDefaultTree(); }
-        } else {
-            seedDefaultTree();
-        }
-        assignAutoGenerations();
-        buildMarriageLinksFromParents();
-    }
+let users = JSON.parse(localStorage.getItem(USERS_KEY)) || defaultUsers;
+let currentUser = null;
 
-    // Build default ANCESTRAL TREE: Great Grandfather -> Grandfather -> Father -> Sons & Grandsons with spouses beside
-    function seedDefaultTree() {
-        familyData.members = [];
-        familyData.marriages = [];
-        const ggFather = { id: "gen1", name: "Chief Tendai Mukanya", gender: "male", birthYear: "1890", deathYear: "1965", profession: "Warrior & Elder", totem: "Shumba", village: "Murewa", notes: "Great grandfather, founder of our lineage", generationLevel: 0, parentId: null, spouseId: "sp1" };
-        const ggMother = { id: "sp1", name: "Amai Chipo Mukanya", gender: "female", birthYear: "1895", deathYear: "1972", profession: "Healer", totem: "Moyo", village: "Murewa", notes: "Matriarch & herbalist", generationLevel: 0, parentId: null, spouseId: "gen1" };
-        
-        const grandFather = { id: "gen2", name: "Sekuru Joseph Mukanya", gender: "male", birthYear: "1925", deathYear: "2000", profession: "Teacher & farmer", totem: "Shumba", village: "Murewa", notes: "Grandfather, built the first school", generationLevel: 1, parentId: "gen1", spouseId: "sp2" };
-        const grandMother = { id: "sp2", name: "Mbuya Rudo Mukanya", gender: "female", birthYear: "1930", deathYear: "2015", profession: "Midwife", totem: "Mhofu", village: "Murewa", notes: "Cherished elder", generationLevel: 1, parentId: null, spouseId: "gen2" };
-        
-        const father = { id: "gen3", name: "Baba Tinashe Mukanya", gender: "male", birthYear: "1960", deathYear: "", profession: "Entrepreneur", totem: "Shumba", village: "Harare", notes: "Father, community leader", generationLevel: 2, parentId: "gen2", spouseId: "sp3" };
-        const mother = { id: "sp3", name: "Amai Tsitsi Mukanya", gender: "female", birthYear: "1965", deathYear: "", profession: "Nurse", totem: "Moyo", village: "Harare", notes: "Mother & protector", generationLevel: 2, parentId: null, spouseId: "gen3" };
-        
-        // Sons & grandsons with spouses beside
-        const son1 = { id: "gen4a", name: "Kudzai Mukanya", gender: "male", birthYear: "1988", deathYear: "", profession: "Architect", totem: "Shumba", village: "Harare", notes: "First son", generationLevel: 3, parentId: "gen3", spouseId: "sp4a" };
-        const daughterInLaw1 = { id: "sp4a", name: "Rutendo Mukanya", gender: "female", birthYear: "1990", deathYear: "", profession: "Lawyer", totem: "Mbeva", village: "Harare", notes: "Loving spouse", generationLevel: 3, parentId: null, spouseId: "gen4a" };
-        const grandson1 = { id: "gen5a", name: "Anotida Mukanya", gender: "male", birthYear: "2015", deathYear: "", profession: "Student", totem: "Shumba", village: "Harare", notes: "Grandson, future leader", generationLevel: 4, parentId: "gen4a", spouseId: null };
-        
-        const son2 = { id: "gen4b", name: "Tafadzwa Mukanya", gender: "male", birthYear: "1992", deathYear: "", profession: "Doctor", totem: "Shumba", village: "Harare", notes: "Second son", generationLevel: 3, parentId: "gen3", spouseId: "sp4b" };
-        const daughterInLaw2 = { id: "sp4b", name: "Nyasha Mukanya", gender: "female", birthYear: "1993", deathYear: "", profession: "Pharmacist", totem: "Moyo", village: "Harare", notes: "Compassionate wife", generationLevel: 3, parentId: null, spouseId: "gen4b" };
-        const grandson2 = { id: "gen5b", name: "Takunda Mukanya", gender: "male", birthYear: "2018", deathYear: "", profession: "", totem: "Shumba", village: "Harare", notes: "Second grandson", generationLevel: 4, parentId: "gen4b", spouseId: null };
-        
-        familyData.members.push(ggFather, ggMother, grandFather, grandMother, father, mother, son1, daughterInLaw1, grandson1, son2, daughterInLaw2, grandson2);
-        // define marriages
-        familyData.marriages = [
-            { husband: "gen1", wife: "sp1" }, { husband: "gen2", wife: "sp2" }, { husband: "gen3", wife: "sp3" },
-            { husband: "gen4a", wife: "sp4a" }, { husband: "gen4b", wife: "sp4b" }
-        ];
-        storeFamilyData();
-    }
+function getUserData(uid) {
+  const key = STORE_KEY + '_' + uid;
+  return JSON.parse(localStorage.getItem(key)) || {
+    members: [{ id:'root1', name:'Samuel Mashozhera', birth:1945, death:null, gender:'male', relationship:'Patriarch', totem:'Shumba', village:'Murewa', district:'Mashonaland East', notes:'Founder of the lineage.', addedBy:'u1' }],
+    links: []
+  };
+}
 
-    function assignAutoGenerations() {
-        // ensure all members have parentId based on naming fallback
-        for (let m of familyData.members) {
-            if (!m.generationLevel && m.parentId) {
-                const parent = familyData.members.find(p => p.id === m.parentId);
-                if (parent) m.generationLevel = (parent.generationLevel || 0) + 1;
-                else m.generationLevel = 0;
-            } else if (m.generationLevel === undefined) m.generationLevel = 0;
-        }
-    }
-    
-    function buildMarriageLinksFromParents() {
-        // auto-link spouses if not already, but we keep manual array for simplicity
-    }
-    
-    // -------------------- HIERARCHICAL TREE LAYOUT (CASCADING: Great Grandfather → Father → Sons → Grandsons + spouses beside) --------------------
-    function computeTreeLayout() {
-        const members = familyData.members;
-        if (members.length === 0) return [];
-        // Find root (minimum generation, patriarch)
-        let root = members.find(m => m.generationLevel === 0 && !familyData.marriages.some(mar => mar.wife === m.id) && m.gender === "male") || members[0];
-        const levelMap = new Map();
-        members.forEach(m => { if (!levelMap.has(m.generationLevel)) levelMap.set(m.generationLevel, []); levelMap.get(m.generationLevel).push(m); });
-        
-        // assign positions: x based on horizontal index, y based on generation gap (140px)
-        const maxGen = Math.max(...members.map(m => m.generationLevel ?? 0), 0);
-        for (let gen = 0; gen <= maxGen; gen++) {
-            const genMembers = levelMap.get(gen) || [];
-            genMembers.sort((a,b) => (a.name || "").localeCompare(b.name));
-            const spouseMap = new Map();
-            // assign spouses to sit right beside the husband
-            const placed = new Set();
-            let xCursor = 0;
-            for (let i = 0; i < genMembers.length; i++) {
-                if (placed.has(genMembers[i].id)) continue;
-                const isMarried = familyData.marriages.find(m => m.husband === genMembers[i].id || m.wife === genMembers[i].id);
-                let spouse = null;
-                if (isMarried) {
-                    const spouseId = isMarried.husband === genMembers[i].id ? isMarried.wife : isMarried.husband;
-                    spouse = members.find(m => m.id === spouseId);
-                }
-                genMembers[i].x = xCursor * 220 + 100;
-                genMembers[i].y = gen * 150 + 80;
-                placed.add(genMembers[i].id);
-                if (spouse && spouse.generationLevel === gen && !placed.has(spouse.id)) {
-                    spouse.x = genMembers[i].x + 200;
-                    spouse.y = gen * 150 + 80;
-                    placed.add(spouse.id);
-                    xCursor += 2;
-                } else {
-                    xCursor += 1;
-                }
-            }
-        }
-        // Children positioning: ensure children are under father center, but we preserve parent link for edges.
-        for (let m of members) {
-            if (m.parentId) {
-                const parent = members.find(p => p.id === m.parentId);
-                if (parent && m.x === undefined) {
-                    m.x = parent.x + (Math.random() * 100 - 50); // fallback, but later adjust
-                    m.y = (m.generationLevel || 0) * 150 + 80;
-                }
-            }
-            if (m.x === undefined) m.x = 200;
-            if (m.y === undefined) m.y = (m.generationLevel || 0) * 150 + 80;
-        }
-        // secondary pass: align children under the husband (father) node
-        for (let m of members) {
-            if (m.parentId) {
-                const children = members.filter(c => c.parentId === m.id && c.gender === "male");
-                if (children.length) {
-                    let startX = m.x - ((children.length-1) * 110);
-                    children.forEach((child, idx) => { child.x = startX + idx * 220; child.y = (child.generationLevel || 0) * 150 + 80; });
-                }
-            }
-        }
-        return members;
-    }
-    
-    // Canvas rendering with marriage links and parent-child edges
-    let canvas = document.getElementById('familyCanvas');
-    let ctx;
-    function resizeCanvas() { if(canvas) { canvas.width = canvas.parentElement.clientWidth; canvas.height = canvas.parentElement.clientHeight; drawTree(); } }
-    
-    function drawTree() {
-        if (!canvas) return;
-        ctx = canvas.getContext('2d');
-        canvas.width = canvas.parentElement.clientWidth;
-        canvas.height = canvas.parentElement.clientHeight;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.save();
-        ctx.translate(canvasTransform.offsetX, canvasTransform.offsetY);
-        ctx.scale(canvasTransform.scale, canvasTransform.scale);
-        
-        const members = computeTreeLayout();
-        // draw connections (parent-child & spouse lines)
-        for (let m of members) {
-            if (m.parentId) {
-                const parent = members.find(p => p.id === m.parentId);
-                if (parent && parent.x && m.x) {
-                    ctx.beginPath();
-                    ctx.moveTo(parent.x + 70, parent.y + 40);
-                    ctx.lineTo(m.x + 70, m.y);
-                    ctx.strokeStyle = "rgba(201, 168, 76, 0.5)";
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
-                }
-            }
-        }
-        // spouse lines (horizontal)
-        for (let mar of familyData.marriages) {
-            const husband = members.find(m => m.id === mar.husband);
-            const wife = members.find(m => m.id === mar.wife);
-            if (husband && wife && husband.x && wife.x) {
-                ctx.beginPath();
-                ctx.moveTo(husband.x + 70, husband.y + 40);
-                ctx.lineTo(wife.x + 30, wife.y + 40);
-                ctx.strokeStyle = "#e9c468";
-                ctx.setLineDash([6, 8]);
-                ctx.stroke();
-                ctx.setLineDash([]);
-            }
-        }
-        
-        // draw nodes
-        for (let m of members) {
-            const x = m.x || 100;
-            const y = m.y || 100;
-            const isMale = m.gender === 'male';
-            const bgColor = isMale ? '#2c5282' : '#9b2c6b';
-            ctx.shadowBlur = 0;
-            ctx.fillStyle = bgColor;
-            ctx.shadowColor = "rgba(0,0,0,0.5)";
-            ctx.beginPath();
-            ctx.roundRect(x, y, 140, 70, 12);
-            ctx.fill();
-            ctx.strokeStyle = "#c9a84c";
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-            ctx.fillStyle = "white";
-            ctx.font = "bold 14px 'Inter'";
-            ctx.fillText(m.name.length > 18 ? m.name.substr(0,16)+".." : m.name, x+12, y+24);
-            ctx.font = "10px 'Inter'";
-            ctx.fillStyle = "#e9c468";
-            if (m.profession) ctx.fillText(m.profession.substring(0,18), x+12, y+44);
-            if (m.totem) { ctx.fillStyle = "#cbd5e1"; ctx.fillText("🐚 "+m.totem, x+12, y+60); }
-            // highlight selected
-            if (selectedMemberId === m.id) {
-                ctx.beginPath();
-                ctx.roundRect(x-3, y-3, 146, 76, 12);
-                ctx.strokeStyle = "#ffd966";
-                ctx.lineWidth = 3;
-                ctx.stroke();
-            }
-        }
-        ctx.restore();
-    }
-    
-    // Helper: roundRect
-    if (!CanvasRenderingContext2D.prototype.roundRect) {
-        CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-            if (w < 2 * r) r = w / 2;
-            if (h < 2 * r) r = h / 2;
-            this.moveTo(x+r, y);
-            this.lineTo(x+w-r, y);
-            this.quadraticCurveTo(x+w, y, x+w, y+r);
-            this.lineTo(x+w, y+h-r);
-            this.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
-            this.lineTo(x+r, y+h);
-            this.quadraticCurveTo(x, y+h, x, y+h-r);
-            this.lineTo(x, y+r);
-            this.quadraticCurveTo(x, y, x+r, y);
-            return this;
-        };
-    }
-    
-    function handleCanvasPanZoom() {
-        canvas.addEventListener('mousedown', (e) => { isDragging = true; dragStart = { x: e.clientX - canvasTransform.offsetX, y: e.clientY - canvasTransform.offsetY }; canvas.style.cursor = 'grabbing'; });
-        window.addEventListener('mousemove', (e) => { if (isDragging && canvas) { canvasTransform.offsetX = e.clientX - dragStart.x; canvasTransform.offsetY = e.clientY - dragStart.y; drawTree(); } });
-        window.addEventListener('mouseup', () => { isDragging = false; canvas.style.cursor = 'grab'; });
-        canvas.addEventListener('wheel', (e) => { e.preventDefault(); const delta = e.deltaY > 0 ? 0.9 : 1.1; canvasTransform.scale = Math.min(2.5, Math.max(0.5, canvasTransform.scale * delta)); drawTree(); }, { passive: false });
-        canvas.addEventListener('click', (e) => { const rect = canvas.getBoundingClientRect(); const mouseX = (e.clientX - rect.left - canvasTransform.offsetX) / canvasTransform.scale; const mouseY = (e.clientY - rect.top - canvasTransform.offsetY) / canvasTransform.scale; const members = computeTreeLayout(); const clicked = members.find(m => mouseX >= (m.x||0) && mouseX <= (m.x||0)+140 && mouseY >= (m.y||0) && mouseY <= (m.y||0)+70); if (clicked) { selectedMemberId = clicked.id; showMemberDetails(clicked.id); drawTree(); } });
-    }
-    
-    function showMemberDetails(id) {
-        const member = familyData.members.find(m => m.id === id);
-        if (!member) return;
-        const sidebar = document.getElementById('infoSidebar');
-        sidebar.classList.add('open');
-        const container = document.getElementById('profileContent');
-        container.innerHTML = `
-            <div class="avatar-circle" style="background-image: url(''); background-color:#2d3748;">${member.name.charAt(0)}</div>
-            <div class="detail-name">${member.name}</div>
-            <div class="detail-row"><div class="detail-label">📜 Legacy / Profession</div><div class="detail-value">${member.profession || '—'}</div></div>
-            <div class="detail-row"><div class="detail-label">🐚 Totem</div><div class="detail-value">${member.totem || '—'}</div></div>
-            <div class="detail-row"><div class="detail-label">🏡 Village</div><div class="detail-value">${member.village || '—'}</div></div>
-            <div class="detail-row"><div class="detail-label">⌛ Years</div><div class="detail-value">${member.birthYear || '?'} — ${member.deathYear || 'Living'}</div></div>
-            <div class="detail-row"><div class="detail-label">📖 Ancestral Notes</div><div class="detail-value">${member.notes || 'Honored ancestor'}</div></div>
-            <div class="action-buttons"><button class="small-btn" id="editMemberBtn">✎ Edit Story</button><button class="small-btn" id="deleteMemberBtn" style="border-color:#b91c1c;">✖ Remove</button></div>
-        `;
-        document.getElementById('editMemberBtn')?.addEventListener('click', () => openEditModal(member.id));
-        document.getElementById('deleteMemberBtn')?.addEventListener('click', () => { if(confirm("Delete this soul from chronicle?")) { familyData.members = familyData.members.filter(m => m.id !== member.id); familyData.marriages = familyData.marriages.filter(m => m.husband !== member.id && m.wife !== member.id); storeFamilyData(); drawTree(); document.getElementById('infoSidebar').classList.remove('open'); showToast("Removed"); } });
-    }
-    
-    function openEditModal(id) { const m = familyData.members.find(x => x.id === id); if(m){ document.getElementById('editId').value = m.id; document.getElementById('memName').value = m.name; document.getElementById('memGender').value = m.gender; document.getElementById('memBirth').value = m.birthYear; document.getElementById('memDeath').value = m.deathYear; document.getElementById('memProfession').value = m.profession; document.getElementById('memTotem').value = m.totem; document.getElementById('memVillage').value = m.village; document.getElementById('memNotes').value = m.notes; document.getElementById('memberModal').style.display = 'flex'; document.getElementById('modalTitle').innerText = "Edit Relative"; } }
-    
-    function saveMemberFromModal() { const id = document.getElementById('editId').value || `mem_${Date.now()}`; const parentId = (familyData.members.find(m => m.generationLevel === 2)?.id) || null; const newMember = { id, name: document.getElementById('memName').value, gender: document.getElementById('memGender').value, birthYear: document.getElementById('memBirth').value, deathYear: document.getElementById('memDeath').value, profession: document.getElementById('memProfession').value, totem: document.getElementById('memTotem').value, village: document.getElementById('memVillage').value, notes: document.getElementById('memNotes').value, generationLevel: 3, parentId: parentId, spouseId: null }; if (!familyData.members.find(m => m.id === id)) familyData.members.push(newMember); else { const idx = familyData.members.findIndex(m => m.id === id); familyData.members[idx] = {...familyData.members[idx], ...newMember}; } storeFamilyData(); drawTree(); document.getElementById('memberModal').style.display = 'none'; showToast("✓ Chronicle updated"); }
-    
-    function showToast(msg) { const toast = document.getElementById('toastContainer'); toast.innerText = msg; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2500); }
-    
-    function resetView() { canvasTransform = { scale: 1, offsetX: 300, offsetY: 150 }; drawTree(); }
-    function exportData() { const dataStr = JSON.stringify({ members: familyData.members, marriages: familyData.marriages }); const blob = new Blob([dataStr], {type: "application/json"}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `nhaka_${currentUser.name}.json`; a.click(); URL.revokeObjectURL(url); }
-    function importData(file) { const reader = new FileReader(); reader.onload = e => { const imported = JSON.parse(e.target.result); if(imported.members) familyData.members = imported.members; if(imported.marriages) familyData.marriages = imported.marriages; storeFamilyData(); drawTree(); showToast("Imported successfully"); }; reader.readAsText(file); }
-    
-    // LOGIN
-    document.getElementById('loginBtn').onclick = () => { const name = document.getElementById('userFullName').value.trim(); const pin = document.getElementById('userPin').value; if(!name) { alert("Enter your name to preserve the chronicle"); return; } currentUser = { id: btoa(name+pin), name: name }; loadFamilyData(); document.getElementById('loginOverlay').style.display = 'none'; document.getElementById('mainApp').style.display = 'flex'; resizeCanvas(); drawTree(); handleCanvasPanZoom(); };
-    window.addEventListener('resize', () => { if(canvas) resizeCanvas(); });
-    document.getElementById('addMemberBtn').onclick = () => { document.getElementById('editId').value = ""; document.getElementById('memName').value = ""; document.getElementById('modalTitle').innerText = "Add New Relative"; document.getElementById('memberModal').style.display = 'flex'; };
-    document.getElementById('saveMemberBtn').onclick = saveMemberFromModal;
-    document.getElementById('closeModalBtn').onclick = () => document.getElementById('memberModal').style.display = 'none';
-    document.getElementById('exportTreeBtn').onclick = exportData;
-    document.getElementById('importTriggerBtn').onclick = () => document.getElementById('jsonImportFile').click();
-    document.getElementById('jsonImportFile').onchange = (e) => { if(e.target.files[0]) importData(e.target.files[0]); };
-    document.getElementById('toggleSidebarBtn').onclick = () => document.getElementById('infoSidebar').classList.toggle('open');
-    document.getElementById('resetViewBtn').onclick = resetView;
+function saveUserData() {
+  const key = STORE_KEY + '_' + currentUser.id;
+  localStorage.setItem(key, JSON.stringify(state));
+}
+
+let state = { members: [], links: [] };
+
+/* ============================================================
+   TREE LAYOUT ENGINE
+   ============================================================ */
+const CFG = { W: 190, H: 82, HGAP: 50, VGAP: 140 };
+
+function getChildren(id) { return state.links.filter(l=>l.parent===id).map(l=>l.child); }
+function getDepth(id, depth=0) {
+  const ch = getChildren(id);
+  if (!ch.length) return depth;
+  return Math.max(...ch.map(c=>getDepth(c, depth+1)));
+}
+
+function layout(id, level=0, offset=0) {
+  const m = state.members.find(m=>m.id===id);
+  if (!m) return offset;
+  const children = getChildren(id);
+  let cur = offset;
+  children.forEach(c => { cur = layout(c, level+1, cur); });
+  if (!children.length) { m.x = offset; cur += CFG.W + CFG.HGAP; }
+  else {
+    const first = state.members.find(x=>x.id===children[0]);
+    const last = state.members.find(x=>x.id===children[children.length-1]);
+    m.x = (first.x + last.x) / 2;
+  }
+  m.y = level * CFG.VGAP + 60;
+  return cur;
+}
+
+function countGenerations() {
+  const childIds = new Set(state.links.map(l=>l.child));
+  const roots = state.members.filter(m=>!childIds.has(m.id));
+  if (!roots.length) return 0;
+  return Math.max(...roots.map(r=>getDepth(r.id))) + 1;
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+const svg = document.getElementById('treeCanvas');
+const grp = document.getElementById('treeGroup');
+let transform = { x: 80, y: 40, s: 1 };
+
+function render() {
+  grp.innerHTML = '';
+  const childIds = new Set(state.links.map(l=>l.child));
+  const roots = state.members.filter(m=>!childIds.has(m.id));
+  let off = 100;
+  roots.forEach(r => { off = layout(r.id, 0, off) + CFG.HGAP * 2; });
+
+  // Connectors
+  state.links.forEach(lnk => {
+    const p = state.members.find(m=>m.id===lnk.parent);
+    const c = state.members.find(m=>m.id===lnk.child);
+    if (!p||!c) return;
+    const sx = p.x + CFG.W/2, sy = p.y + CFG.H;
+    const ex = c.x + CFG.W/2, ey = c.y;
+    const my = (sy+ey)/2;
+    const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+    path.setAttribute("d",`M ${sx} ${sy} C ${sx} ${my}, ${ex} ${my}, ${ex} ${ey}`);
+    path.setAttribute("fill","none");
+    path.setAttribute("stroke","rgba(201,168,76,0.3)");
+    path.setAttribute("stroke-width","1.5");
+    path.setAttribute("stroke-linecap","round");
+    grp.appendChild(path);
+  });
+
+  // Nodes
+  state.members.forEach(m => {
+    const isMale = m.gender === 'male';
+    const baseColor = isMale ? '#162a5e' : '#3e1040';
+    const borderColor = isMale ? 'rgba(70,110,200,0.6)' : 'rgba(180,60,140,0.6)';
+    const accentColor = isMale ? '#5080d0' : '#c060a0';
+    const initials = m.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+
+    const g = document.createElementNS("http://www.w3.org/2000/svg","g");
+    g.style.transform = `translate(${m.x}px, ${m.y}px)`;
+    g.style.cursor = 'pointer';
+    g.dataset.id = m.id;
+
+    g.innerHTML = `
+      <rect width="${CFG.W}" height="${CFG.H}" rx="12" fill="${baseColor}" stroke="${borderColor}" stroke-width="1.5"/>
+      <rect width="5" height="${CFG.H}" rx="2" fill="${accentColor}" opacity="0.7"/>
+      <circle cx="26" cy="28" r="14" fill="${accentColor}" opacity="0.25"/>
+      <text x="26" y="33" text-anchor="middle" fill="white" font-size="11" font-weight="700" font-family="DM Sans">${initials}</text>
+      <text x="48" y="25" fill="#e8e4dc" font-size="12.5" font-weight="600" font-family="DM Sans">${truncate(m.name,18)}</text>
+      <text x="48" y="41" fill="rgba(201,168,76,0.85)" font-size="9.5" font-family="DM Sans">${m.relationship||''}</text>
+      <text x="48" y="56" fill="rgba(200,200,190,0.5)" font-size="9" font-family="DM Sans">${m.totem?'⬡ '+m.totem:''}</text>
+      <text x="48" y="70" fill="rgba(200,200,190,0.4)" font-size="8.5" font-family="DM Sans">${m.birth?'b.'+m.birth:''}${m.death?' — '+m.death:''}</text>
+    `;
+
+    g.addEventListener('click', () => selectMember(m.id));
+    g.addEventListener('mouseenter', () => {
+      g.querySelector('rect').setAttribute('stroke-width','2.5');
+      g.querySelector('rect').setAttribute('stroke','rgba(201,168,76,0.9)');
+    });
+    g.addEventListener('mouseleave', () => {
+      if (selectedId !== m.id) {
+        g.querySelector('rect').setAttribute('stroke-width','1.5');
+        g.querySelector('rect').setAttribute('stroke',borderColor);
+      }
+    });
+    grp.appendChild(g);
+  });
+
+  applyTransform();
+  updateSidebar();
+  updateStats();
+}
+
+function truncate(str, n) { return str.length > n ? str.substring(0,n)+'…' : str; }
+
+function applyTransform() {
+  grp.setAttribute('transform', `translate(${transform.x},${transform.y}) scale(${transform.s})`);
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+function updateSidebar() {
+  const list = document.getElementById('memberList');
+  const parentSel = document.getElementById('mParent');
+  const query = document.getElementById('searchInput')?.value.toLowerCase() || '';
+
+  list.innerHTML = '';
+  parentSel.innerHTML = '<option value="">None (Root ancestor)</option>';
+
+  const sorted = [...state.members].sort((a,b)=>a.name.localeCompare(b.name));
+  sorted.forEach(m => {
+    const isMale = m.gender==='male';
+    const color = isMale ? '#2a4a90' : '#8a2860';
+
+    if (!m.name.toLowerCase().includes(query)) return;
+
+    const card = document.createElement('div');
+    card.className = 'member-card' + (m.id===selectedId?' selected':'');
+    card.dataset.id = m.id;
+    card.innerHTML = `
+      <div class="avatar" style="background:${color}">${m.name.split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase()}</div>
+      <div class="info">
+        <div class="name">${m.name}</div>
+        <div class="meta">${m.totem||'No totem'} · ${m.birth||'?'}</div>
+      </div>
+      <span class="rel-badge">${m.relationship||''}</span>
+    `;
+    card.addEventListener('click', ()=>selectMember(m.id));
+    list.appendChild(card);
+
+    const opt = document.createElement('option');
+    opt.value = m.id;
+    opt.textContent = m.name;
+    parentSel.appendChild(opt);
+  });
+}
+
+function updateStats() {
+  document.getElementById('statTotal').textContent = state.members.length;
+  document.getElementById('statGens').textContent = countGenerations();
+}
+
+function filterMembers() { updateSidebar(); }
+
+/* ============================================================
+   MEMBER SELECTION & DETAIL PANEL
+   ============================================================ */
+let selectedId = null;
+
+function selectMember(id) {
+  selectedId = id;
+  const m = state.members.find(x=>x.id===id);
+  if (!m) return;
+
+  const panel = document.getElementById('detailPanel');
+  const inner = document.getElementById('detailInner');
+  const actions = document.getElementById('detailActions');
+  panel.classList.add('open');
+
+  const isMale = m.gender==='male';
+  const avatarColor = isMale?'#2a4a90':'#8a2860';
+
+  inner.innerHTML = `
+    <div class="detail-avatar" style="background:${avatarColor}">${m.name.split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase()}</div>
+    <div class="detail-name">${m.name}</div>
+    <div class="detail-role">${m.relationship||'Member'}</div>
+    <div class="detail-divider"></div>
+    <div class="detail-field"><div class="lbl">Gender</div><div class="val">${m.gender||'—'}</div></div>
+    <div class="detail-field"><div class="lbl">Totem (Mutupo)</div><div class="val">${m.totem||'—'}</div></div>
+    <div class="detail-field"><div class="lbl">Village (Musha)</div><div class="val">${m.village||'—'}</div></div>
+    <div class="detail-field"><div class="lbl">District</div><div class="val">${m.district||'—'}</div></div>
+    <div class="detail-field"><div class="lbl">Born</div><div class="val">${m.birth||'Unknown'}</div></div>
+    <div class="detail-field"><div class="lbl">Died</div><div class="val">${m.death||'Living / Unknown'}</div></div>
+    ${m.notes?`<div class="detail-field"><div class="lbl">Notes</div><div class="val" style="font-style:italic;opacity:0.8;">${m.notes}</div></div>`:''}
+  `;
+
+  actions.innerHTML = `
+    <button class="btn gold" style="justify-content:center;" onclick="editMember('${id}')">✏ Edit</button>
+    <button class="btn danger" style="justify-content:center;" onclick="deleteMember('${id}')">✕ Remove</button>
+    <button class="btn" style="justify-content:center;" onclick="closeDetail()">✕ Close</button>
+  `;
+
+  updateSidebar();
+}
+
+function closeDetail() {
+  selectedId = null;
+  document.getElementById('detailPanel').classList.remove('open');
+  updateSidebar();
+}
+
+/* ============================================================
+   ADD / EDIT
+   ============================================================ */
+let editingId = null;
+
+function openAddModal() {
+  editingId = null;
+  document.getElementById('modalTitle').innerHTML = 'Add Member <span>to the chronicle</span>';
+  document.getElementById('memberForm') && document.getElementById('memberForm').reset();
+  ['mName','mGender','mRelationship','mBirth','mDeath','mTotem','mTotemOther','mVillage','mDistrict','mNotes']
+    .forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('otherTotemGroup').style.display='none';
+  updateSidebar();
+  document.getElementById('addOverlay').classList.add('open');
+}
+
+function editMember(id) {
+  editingId = id;
+  const m = state.members.find(x=>x.id===id);
+  if (!m) return;
+  document.getElementById('modalTitle').innerHTML = 'Edit Member <span>update record</span>';
+  document.getElementById('mName').value = m.name||'';
+  document.getElementById('mGender').value = m.gender||'male';
+  document.getElementById('mRelationship').value = m.relationship||'Descendant';
+  document.getElementById('mBirth').value = m.birth||'';
+  document.getElementById('mDeath').value = m.death||'';
+  document.getElementById('mVillage').value = m.village||'';
+  document.getElementById('mDistrict').value = m.district||'';
+  document.getElementById('mNotes').value = m.notes||'';
+
+  const known = Array.from(document.getElementById('mTotem').options).map(o=>o.value);
+  if (m.totem && known.includes(m.totem)) {
+    document.getElementById('mTotem').value = m.totem;
+    document.getElementById('otherTotemGroup').style.display='none';
+  } else if (m.totem) {
+    document.getElementById('mTotem').value = 'Other';
+    document.getElementById('mTotemOther').value = m.totem;
+    document.getElementById('otherTotemGroup').style.display='block';
+  }
+
+  const link = state.links.find(l=>l.child===id);
+  document.getElementById('mParent').value = link ? link.parent : '';
+  document.getElementById('addOverlay').classList.add('open');
+}
+
+function saveMember() {
+  const name = document.getElementById('mName').value.trim();
+  if (!name) { showToast('Please enter a full name.'); return; }
+
+  let totem = document.getElementById('mTotem').value;
+  if (totem === 'Other') totem = document.getElementById('mTotemOther').value.trim() || 'Other';
+
+  const data = {
+    name,
+    gender: document.getElementById('mGender').value,
+    relationship: document.getElementById('mRelationship').value,
+    birth: document.getElementById('mBirth').value,
+    death: document.getElementById('mDeath').value,
+    totem,
+    village: document.getElementById('mVillage').value.trim(),
+    district: document.getElementById('mDistrict').value.trim(),
+    notes: document.getElementById('mNotes').value.trim(),
+    addedBy: currentUser?.id
+  };
+
+  if (editingId) {
+    const idx = state.members.findIndex(m=>m.id===editingId);
+    state.members[idx] = { ...state.members[idx], ...data };
+    state.links = state.links.filter(l=>l.child!==editingId);
+  } else {
+    data.id = 'm_' + Date.now();
+    state.members.push(data);
+  }
+
+  const parentId = document.getElementById('mParent').value;
+  if (parentId) {
+    const childId = editingId || data.id;
+    if (!state.links.find(l=>l.parent===parentId && l.child===childId))
+      state.links.push({ parent: parentId, child: childId });
+  }
+
+  closeModal();
+  render();
+  saveUserData();
+  showToast(editingId ? `${data.name} updated.` : `${data.name} added to the chronicle.`);
+  if (data.id) setTimeout(()=>selectMember(data.id), 100);
+}
+
+function deleteMember(id) {
+  const m = state.members.find(x=>x.id===id);
+  if (!confirm(`Remove ${m?.name} from the chronicle?`)) return;
+  state.members = state.members.filter(x=>x.id!==id);
+  state.links = state.links.filter(l=>l.parent!==id && l.child!==id);
+  closeDetail();
+  render();
+  saveUserData();
+  showToast(`${m?.name} removed.`);
+}
+
+function checkOtherTotem() {
+  document.getElementById('otherTotemGroup').style.display =
+    document.getElementById('mTotem').value === 'Other' ? 'block' : 'none';
+}
+
+function closeModal() { document.getElementById('addOverlay').classList.remove('open'); }
+
+/* ============================================================
+   PAN & ZOOM
+   ============================================================ */
+let drag = false, last = { x:0, y:0 };
+
+svg.addEventListener('mousedown', e => {
+  if (e.target.closest('[data-id]')) return;
+  drag = true; last = { x:e.clientX-transform.x, y:e.clientY-transform.y };
+});
+window.addEventListener('mousemove', e => {
+  if (!drag) return;
+  transform.x = e.clientX - last.x;
+  transform.y = e.clientY - last.y;
+  applyTransform();
+});
+window.addEventListener('mouseup', () => drag = false);
+
+svg.addEventListener('touchstart', e => {
+  if (e.touches.length===1) { drag=true; last={x:e.touches[0].clientX-transform.x, y:e.touches[0].clientY-transform.y}; }
+}, {passive:true});
+svg.addEventListener('touchmove', e => {
+  if (!drag||e.touches.length!==1) return;
+  transform.x=e.touches[0].clientX-last.x; transform.y=e.touches[0].clientY-last.y;
+  applyTransform();
+}, {passive:true});
+svg.addEventListener('touchend', ()=>drag=false);
+
+svg.addEventListener('wheel', e => {
+  e.preventDefault();
+  const delta = e.deltaY > 0 ? 0.88 : 1.12;
+  const rect = svg.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  transform.x = mx - (mx - transform.x) * delta;
+  transform.y = my - (my - transform.y) * delta;
+  transform.s = Math.max(0.3, Math.min(2.5, transform.s * delta));
+  applyTransform();
+}, { passive: false });
+
+function zoom(f) {
+  transform.s = Math.max(0.3, Math.min(2.5, transform.s * f));
+  applyTransform();
+}
+
+function resetView() {
+  transform = { x:80, y:40, s:1 };
+  applyTransform();
+}
+
+/* ============================================================
+   USER MANAGEMENT
+   ============================================================ */
+function renderUserSwitcher() {
+  const sw = document.getElementById('userSwitcher');
+  sw.innerHTML = '';
+  users.forEach(u => {
+    const div = document.createElement('div');
+    div.className = 'user-option' + (currentUser?.id===u.id?' active':'');
+    div.innerHTML = `
+      <div class="u-avatar">${u.name[0].toUpperCase()}</div>
+      <div><div class="u-name">${u.name}</div><div class="u-role">${u.role}</div></div>
+      <div class="check">✓</div>
+    `;
+    div.addEventListener('click', ()=>signIn(u));
+    sw.appendChild(div);
+  });
+}
+
+function signIn(user) {
+  currentUser = user;
+  state = getUserData(user.id);
+  document.getElementById('badgeName').textContent = user.name.split(' ')[0];
+  document.getElementById('badgeAvatar').textContent = user.name[0].toUpperCase();
+  document.getElementById('signinScreen').classList.add('hidden');
+  render();
+  showToast(`Welcome back, ${user.name.split(' ')[0]}!`);
+}
+
+function switchUser() {
+  renderUserSwitcher();
+  document.getElementById('signinScreen').classList.remove('hidden');
+}
+
+function showNewUserModal() {
+  document.getElementById('newUserOverlay').classList.add('open');
+}
+function closeNewUserModal() {
+  document.getElementById('newUserOverlay').classList.remove('open');
+}
+
+function createUser() {
+  const name = document.getElementById('nuName').value.trim();
+  const role = document.getElementById('nuRole').value.trim() || 'Member';
+  if (!name) { showToast('Please enter a name.'); return; }
+  const u = { id: 'u_' + Date.now(), name, role };
+  users.push(u);
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+  closeNewUserModal();
+  renderUserSwitcher();
+  signIn(u);
+}
+
+/* ============================================================
+   EXPORT / IMPORT
+   ============================================================ */
+function toggleExport() {
+  document.getElementById('exportOptions').classList.toggle('open');
+}
+
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `nhaka_${currentUser?.name.replace(/\s/g,'_')}_${Date.now()}.json`;
+  a.click();
+  showToast('JSON exported successfully.');
+  document.getElementById('exportOptions').classList.remove('open');
+}
+
+function importJSON() {
+  document.getElementById('importFile').click();
+  document.getElementById('exportOptions').classList.remove('open');
+}
+
+function handleImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.members && data.links) {
+        state = data;
+        render();
+        saveUserData();
+        showToast('Family tree imported successfully!');
+      } else { showToast('Invalid file format.'); }
+    } catch { showToast('Could not read file.'); }
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
+
+async function exportPDF() {
+  showToast('Generating PDF…');
+  document.getElementById('exportOptions').classList.remove('open');
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation:'landscape', unit:'pt', format:'a3' });
+
+    // Page background
+    doc.setFillColor(13, 27, 62);
+    doc.rect(0,0,1190,840,  'F');
+
+    // Title
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(28);
+    doc.setTextColor(201,168,76);
+    const title = currentUser?.name ? currentUser.name + ' — Family Chronicle' : 'Family Chronicle';
+    doc.text(title, 60, 55);
+
+    doc.setFontSize(10);
+    doc.setTextColor(140,133,117);
+    doc.text('Generated by Nhaka · The Living Chronicle · ' + new Date().toLocaleDateString(), 60, 72);
+
+    // Decorative line
+    doc.setDrawColor(201,168,76);
+    doc.setLineWidth(0.5);
+    doc.line(60, 80, 1130, 80);
+
+    // Build sorted/laid out positions
+    const childIds2 = new Set(state.links.map(l=>l.child));
+    const roots2 = state.members.filter(m=>!childIds2.has(m.id));
+    let off2 = 100;
+    roots2.forEach(r => { off2 = layout(r.id, 0, off2) + CFG.HGAP * 2; });
+
+    const scale = 0.62;
+    const offsetX = 55, offsetY = 100;
+
+    // Draw connectors
+    doc.setLineWidth(0.8);
+    doc.setDrawColor(100, 90, 50);
+    state.links.forEach(lnk => {
+      const p = state.members.find(m=>m.id===lnk.parent);
+      const c = state.members.find(m=>m.id===lnk.child);
+      if (!p||!c) return;
+      const sx = p.x*scale+offsetX + (CFG.W*scale)/2;
+      const sy = p.y*scale+offsetY + CFG.H*scale;
+      const ex = c.x*scale+offsetX + (CFG.W*scale)/2;
+      const ey = c.y*scale+offsetY;
+      const my = (sy+ey)/2;
+      doc.bezierCurve(sx,sy, sx,my, ex,my, ex,ey, null);
+    });
+
+    // Draw nodes
+    state.members.forEach(m => {
+      const nx = m.x*scale + offsetX;
+      const ny = m.y*scale + offsetY;
+      const nw = CFG.W*scale;
+      const nh = CFG.H*scale;
+      const isMale = m.gender==='male';
+
+      doc.setFillColor(isMale?22:62, isMale?42:16, isMale?94:64);
+      doc.roundedRect(nx, ny, nw, nh, 5, 5, 'F');
+      doc.setDrawColor(isMale?70:180, isMale?110:60, isMale?200:140);
+      doc.setLineWidth(0.7);
+      doc.roundedRect(nx, ny, nw, nh, 5, 5, 'S');
+
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(8.5);
+      doc.setTextColor(232,228,220);
+      doc.text(m.name.length>22?m.name.substring(0,22)+'…':m.name, nx+8, ny+16);
+
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(7);
+      doc.setTextColor(201,168,76);
+      doc.text(m.relationship||'', nx+8, ny+27);
+
+      doc.setTextColor(170,165,155);
+      if (m.totem) doc.text('⬡ '+m.totem, nx+8, ny+38);
+      if (m.village) doc.text(m.village, nx+8, ny+48);
+      const yr = [m.birth?'b.'+m.birth:'', m.death?'d.'+m.death:''].filter(Boolean).join(' ');
+      if (yr) doc.text(yr, nx+8, ny+58);
+    });
+
+    // Members list
+    const listX = 60, listY = offsetY + countGenerations()*CFG.VGAP*scale + 60;
+    doc.setDrawColor(201,168,76);
+    doc.line(listX, listY, 1130, listY);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(11);
+    doc.setTextColor(201,168,76);
+    doc.text('COMPLETE MEMBER REGISTRY', listX, listY+15);
+
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(8);
+    doc.setTextColor(200,195,185);
+    let col = 0, row = 0;
+    state.members.forEach((m,i) => {
+      const tx = listX + col * 380;
+      const ty = listY + 30 + row * 22;
+      if (ty > 820) return;
+      doc.setFont('helvetica','bold');
+      doc.text(`${i+1}. ${m.name}`, tx, ty);
+      doc.setFont('helvetica','normal');
+      doc.setTextColor(140,133,117);
+      const sub = [m.relationship, m.totem, m.village].filter(Boolean).join(' · ');
+      doc.text(sub, tx+2, ty+11);
+      doc.setTextColor(200,195,185);
+      col++;
+      if (col >= 3) { col=0; row++; }
+    });
+
+    doc.save(`nhaka_family_tree_${Date.now()}.pdf`);
+    showToast('PDF saved successfully!');
+  } catch(err) {
+    console.error(err);
+    showToast('PDF export failed. Try again.');
+  }
+}
+
+/* ============================================================
+   SIDEBAR TOGGLE
+   ============================================================ */
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  if (window.innerWidth <= 768) {
+    sb.classList.toggle('visible');
+  } else {
+    sb.classList.toggle('hidden');
+  }
+}
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 3200);
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+window.addEventListener('DOMContentLoaded', () => {
+  renderUserSwitcher();
+});
+
+window.addEventListener('click', e => {
+  if (!e.target.closest('.canvas-toolbar') && !e.target.closest('#exportOptions'))
+    document.getElementById('exportOptions').classList.remove('open');
+});
 </script>
 </body>
 </html>
-```
