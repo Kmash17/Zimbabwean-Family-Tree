@@ -3,370 +3,353 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NHAKA — Zimbabwean Family Chronicle</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<title>Nhaka — The Living Chronicle</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
 <style>
-  :root {
-    --bg: #0f0e0c; --bg2: #1a1814; --bg3: #252320; --card: #1f1d1a;
-    --gold: #c9a84c; --gold2: #e8c87a; --gold3: #8a6a28;
-    --text: #f0ead8; --text2: #b8a882; --text3: #7a6e58;
-    --border: #3a3428; --border2: #4a4232;
-    --male: #3a5a8a; --female: #8a3a5a; --unknown: #4a4a3a;
-    --shadow: 0 4px 24px rgba(0,0,0,0.5);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
+:root{
+--navy:#0d1b3e;
+--gold:#c9a84c;
+--white:#fff;
+--card:#162040;
+}
 
-  /* PRIVACY LOGIN SCREEN */
-  .signin-screen {
-    position: fixed; inset: 0; z-index: 1000; background: var(--bg);
-    display: flex; align-items: center; justify-content: center;
-  }
-  .signin-screen.hidden { display: none; }
-  .signin-card {
-    background: var(--card); border: 1px solid var(--border);
-    padding: 3rem; border-radius: 20px; width: 400px; text-align: center;
-    box-shadow: var(--shadow);
-  }
-  .signin-card h1 { font-family: 'Playfair Display', serif; color: var(--gold); margin-bottom: 0.5rem; }
-  .signin-card p { color: var(--text3); font-size: 0.9rem; margin-bottom: 2rem; }
+body{
+margin:0;
+font-family:'DM Sans',sans-serif;
+background:var(--navy);
+color:var(--white);
+overflow:hidden;
+}
 
-  /* APP LAYOUT */
-  header {
-    background: var(--bg2); border-bottom: 1px solid var(--border);
-    padding: 0 2rem; height: 64px; display: flex; align-items: center; justify-content: space-between;
-  }
-  .logo { font-family: 'Playfair Display', serif; color: var(--gold); display: flex; align-items: center; gap: 10px; }
-  .app-container { display: flex; height: calc(100vh - 64px); }
-  
-  .sidebar { width: 300px; background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-  .tree-area { flex: 1; position: relative; overflow: hidden; background-color: #0c0b09; }
-  
-  .btn {
-    background: var(--bg3); border: 1px solid var(--border2); color: var(--text2);
-    padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.2s;
-  }
-  .btn.primary { background: var(--gold3); color: white; border: none; }
-  .btn:hover { background: var(--border); color: var(--text); }
+header{
+height:60px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:0 20px;
+border-bottom:1px solid rgba(255,255,255,0.1);
+}
 
-  /* MODAL */
-  .modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 500;
-    display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);
-  }
-  .modal-overlay.hidden { display: none; }
-  .modal { background: var(--card); border: 1px solid var(--border); width: 500px; border-radius: 15px; padding: 2rem; }
-  .form-group { margin-bottom: 1rem; display: flex; flex-direction: column; gap: 5px; }
-  .form-group label { font-size: 0.7rem; text-transform: uppercase; color: var(--gold); letter-spacing: 1px; }
-  .form-control { background: var(--bg3); border: 1px solid var(--border2); color: white; padding: 10px; border-radius: 6px; }
+.btn{
+border:1px solid var(--gold);
+padding:6px 12px;
+cursor:pointer;
+background:transparent;
+color:#fff;
+}
 
-  /* TREE SVG */
-  #treeCanvas { width: 100%; height: 100%; cursor: grab; }
-  .node rect { stroke-width: 2; rx: 8; ry: 8; }
-  .node text { font-size: 12px; pointer-events: none; }
-  .link { fill: none; stroke: var(--gold); stroke-width: 1.5; opacity: 0.3; }
+.btn.gold{
+background:var(--gold);
+color:#000;
+}
 
-  /* DETAIL PANEL */
-  .detail-panel {
-    position: absolute; top: 20px; left: 20px; width: 280px;
-    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-    padding: 1.5rem; display: none; box-shadow: var(--shadow);
-  }
-  .detail-panel.active { display: block; }
+.app{
+display:flex;
+height:calc(100vh - 60px);
+}
+
+/* SIDEBAR */
+.sidebar{
+width:280px;
+border-right:1px solid rgba(255,255,255,0.1);
+overflow-y:auto;
+padding:10px;
+}
+
+.member-card{
+padding:8px;
+margin-bottom:5px;
+border:1px solid rgba(255,255,255,0.1);
+cursor:pointer;
+}
+
+/* CANVAS */
+.canvas{
+flex:1;
+overflow:auto;
+position:relative;
+}
+
+.node{
+position:absolute;
+width:180px;
+background:var(--card);
+border:1px solid var(--gold);
+padding:10px;
+border-radius:10px;
+text-align:center;
+}
+
+/* MODAL */
+.modal{
+position:fixed;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+background:#162040;
+padding:20px;
+display:none;
+z-index:10;
+}
+
+.modal input,.modal select,.modal textarea{
+width:100%;
+margin-bottom:8px;
+padding:6px;
+}
+
+.signin{
+position:fixed;
+inset:0;
+background:#0d1b3e;
+display:flex;
+align-items:center;
+justify-content:center;
+}
 </style>
 </head>
+
 <body>
 
-<div id="loginScreen" class="signin-screen">
-  <div class="signin-card">
-    <h1>NHAKA</h1>
-    <p>Enter your profile name to access your family tree. Profiles are kept private.</p>
-    <div class="form-group">
-      <input type="text" id="profileInput" class="form-control" style="text-align:center" placeholder="Profile Name...">
-    </div>
-    <button class="btn primary" style="width:100%" onclick="handleLogin()">Access Chronicle</button>
-  </div>
+<!-- LOGIN -->
+<div class="signin" id="signin">
+<button class="btn gold" onclick="createUser()">Create Private Profile</button>
 </div>
 
 <header>
-  <div class="logo">🌳 NHAKA <span>Zimbabwean Heritage</span></div>
-  <div class="actions">
-    <button class="btn" onclick="centerTree()">Center View</button>
-    <button class="btn primary" onclick="openModal('add')">+ Add Member</button>
-    <button class="btn" onclick="logout()">Logout</button>
-  </div>
+<div>NHAKA</div>
+<div>
+<button class="btn" onclick="openModal()">Add Member</button>
+</div>
 </header>
 
-<div class="app-container">
-  <aside class="sidebar">
-    <div style="padding:1.5rem; border-bottom:1px solid var(--border)">
-      <h3 id="profileHeading">Family Records</h3>
-    </div>
-    <div id="memberList" style="flex:1; overflow-y:auto; padding:1rem"></div>
-  </aside>
+<div class="app">
 
-  <main class="tree-area">
-    <svg id="treeCanvas">
-      <g id="viewport"></g>
-    </svg>
+<div class="sidebar" id="sidebar"></div>
 
-    <div id="detailPanel" class="detail-panel">
-      <h2 id="dName" style="font-family:'Playfair Display'; margin-bottom:5px"></h2>
-      <p id="dProfession" style="color:var(--gold); font-size:0.8rem; margin-bottom:15px"></p>
-      <div id="dDetails" style="font-size:0.85rem; line-height:1.6"></div>
-      <div style="margin-top:20px; display:flex; gap:10px">
-        <button class="btn" style="padding:4px 8px; font-size:11px" id="editBtn">Edit</button>
-        <button class="btn" style="padding:4px 8px; font-size:11px" onclick="closeDetails()">Close</button>
-      </div>
-    </div>
-  </main>
+<div class="canvas" id="canvas"></div>
+
 </div>
 
-<div id="memberModal" class="modal-overlay hidden">
-  <div class="modal">
-    <h2 id="modalTitle" style="margin-bottom:1.5rem; font-family:'Playfair Display'">Add Member</h2>
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px">
-      <div class="form-group">
-        <label>Full Name</label>
-        <input type="text" id="mName" class="form-control">
-      </div>
-      <div class="form-group">
-        <label>Profession</label>
-        <input type="text" id="mProfession" class="form-control" placeholder="e.g. Doctor">
-      </div>
-      <div class="form-group">
-        <label>Totem (Mutupo)</label>
-        <select id="mTotem" class="form-control">
-          <option value="Moyo">Moyo (Heart)</option>
-          <option value="Shumba">Shumba (Lion)</option>
-          <option value="Mhofu">Mhofu (Eland)</option>
-          <option value="Nzou">Nzou (Elephant)</option>
-          <option value="Soko">Soko (Monkey)</option>
-          <option value="Nhungu">Nhungu (Porcupine)</option>
-          <option value="Gumbo">Gumbo (Leg)</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Province of Origin</label>
-        <select id="mProvince" class="form-control">
-          <option value="Bulawayo">Bulawayo</option>
-          <option value="Harare">Harare</option>
-          <option value="Manicaland">Manicaland</option>
-          <option value="Mashonaland Central">Mashonaland Central</option>
-          <option value="Mashonaland East">Mashonaland East</option>
-          <option value="Mashonaland West">Mashonaland West</option>
-          <option value="Masvingo">Masvingo</option>
-          <option value="Matabeleland North">Matabeleland North</option>
-          <option value="Matabeleland South">Matabeleland South</option>
-          <option value="Midlands">Midlands</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Parent (Optional)</label>
-        <select id="mParent" class="form-control"><option value="">Root (No Parent)</option></select>
-      </div>
-      <div class="form-group">
-        <label>Gender</label>
-        <select id="mGender" class="form-control">
-          <option value="male">Male</option>
-          <option value="female">Female</option>
-        </select>
-      </div>
-    </div>
-    <div style="margin-top:2rem; display:flex; justify-content:flex-end; gap:10px">
-      <button class="btn" onclick="closeModal()">Cancel</button>
-      <button class="btn primary" onclick="saveMember()">Save Member</button>
-    </div>
-  </div>
+<!-- MODAL -->
+<div class="modal" id="modal">
+
+<input id="name" placeholder="Full Name">
+
+<select id="gender">
+<option value="male">Male</option>
+<option value="female">Female</option>
+</select>
+
+<input id="birth" placeholder="Birth Year">
+<input id="death" placeholder="Death Year">
+
+<input id="profession" placeholder="Profession">
+
+<select id="province">
+<option value="">Province</option>
+<option>Harare</option>
+<option>Bulawayo</option>
+<option>Manicaland</option>
+<option>Mashonaland Central</option>
+<option>Mashonaland East</option>
+<option>Mashonaland West</option>
+<option>Masvingo</option>
+<option>Matabeleland North</option>
+<option>Matabeleland South</option>
+<option>Midlands</option>
+</select>
+
+<input id="district" placeholder="District">
+<input id="village" placeholder="Village">
+
+<select id="totem">
+<option value="">Totem</option>
+<option>Moyo</option>
+<option>Shumba</option>
+<option>Nzou</option>
+<option>Hungwe</option>
+<option>Tsoko</option>
+</select>
+
+<input id="praise" placeholder="Clan Praise Name">
+<input id="burial" placeholder="Burial Place">
+
+<select id="parent">
+<option value="">No Parent</option>
+</select>
+
+<textarea id="notes" placeholder="Notes"></textarea>
+
+<button onclick="save()">Save</button>
+<button onclick="closeModal()">Close</button>
+
 </div>
 
 <script>
-let currentUser = null;
-let members = [];
-let editingId = null;
+let user=null;
+let state={members:[],links:[]};
 
-// Tree Config
-const NODE_W = 160;
-const NODE_H = 60;
-const VGAP = 100;
-const HGAP = 40;
+function createUser(){
+const name=prompt("Enter your name");
+if(!name)return;
 
-// --- PRIVACY LOGIN SYSTEM ---
-function handleLogin() {
-  const name = document.getElementById('profileInput').value.trim();
-  if(!name) return alert("Please enter a profile name.");
-  
-  currentUser = name;
-  document.getElementById('loginScreen').classList.add('hidden');
-  document.getElementById('profileHeading').innerText = `${name}'s Family`;
-  
-  // Load profile-specific data
-  const saved = localStorage.getItem(`nhaka_data_${name}`);
-  members = saved ? JSON.parse(saved) : [];
-  render();
+user=name;
+localStorage.setItem("nhaka_user",name);
+
+document.getElementById("signin").style.display="none";
+load();
 }
 
-function logout() {
-  currentUser = null;
-  document.getElementById('loginScreen').classList.remove('hidden');
-  document.getElementById('profileInput').value = "";
+/* LOAD */
+function load(){
+const data=localStorage.getItem("nhaka_"+user);
+if(data) state=JSON.parse(data);
+render();
 }
 
-// --- TREE LOGIC (Cascading Downwards) ---
-function render() {
-  const viewport = document.getElementById('viewport');
-  const list = document.getElementById('memberList');
-  viewport.innerHTML = '';
-  list.innerHTML = '';
-
-  if (members.length === 0) return;
-
-  // 1. Calculate Hierarchy Levels
-  const levels = {};
-  const processed = new Set();
-  
-  function setLevel(id, lvl) {
-    levels[id] = lvl;
-    members.filter(m => m.parentId === id).forEach(child => setLevel(child.id, lvl + 1));
-  }
-
-  const roots = members.filter(m => !m.parentId);
-  roots.forEach(r => setLevel(r.id, 0));
-
-  // 2. Position Nodes (Cascading Logic)
-  const pos = {};
-  const levelCounts = {};
-
-  members.sort((a,b) => (levels[a.id] || 0) - (levels[b.id] || 0)).forEach(m => {
-    const lvl = levels[m.id] || 0;
-    if (!levelCounts[lvl]) levelCounts[lvl] = 0;
-    
-    pos[m.id] = {
-      x: levelCounts[lvl] * (NODE_W + HGAP),
-      y: lvl * (NODE_H + VGAP)
-    };
-    levelCounts[lvl]++;
-  });
-
-  // 3. Draw Links
-  members.forEach(m => {
-    if (m.parentId && pos[m.parentId]) {
-      const p = pos[m.parentId];
-      const c = pos[m.id];
-      const path = `M ${p.x + NODE_W/2} ${p.y + NODE_H} 
-                    C ${p.x + NODE_W/2} ${p.y + NODE_H + VGAP/2}, 
-                      ${c.x + NODE_W/2} ${c.y - VGAP/2}, 
-                      ${c.x + NODE_W/2} ${c.y}`;
-      const line = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      line.setAttribute("d", path);
-      line.setAttribute("class", "link");
-      viewport.appendChild(line);
-    }
-  });
-
-  // 4. Draw Nodes
-  members.forEach(m => {
-    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    g.setAttribute("transform", `translate(${pos[m.id].x}, ${pos[m.id].y})`);
-    g.style.cursor = "pointer";
-    g.onclick = () => showDetails(m.id);
-
-    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    rect.setAttribute("width", NODE_W);
-    rect.setAttribute("height", NODE_H);
-    rect.setAttribute("fill", "#1f1d1a");
-    rect.setAttribute("stroke", m.gender === 'male' ? '#3a5a8a' : '#8a3a5a');
-    
-    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    text.setAttribute("x", NODE_W/2);
-    text.setAttribute("y", NODE_H/2 + 5);
-    text.setAttribute("text-anchor", "middle");
-    text.setAttribute("fill", "#f0ead8");
-    text.textContent = m.name;
-
-    g.appendChild(rect);
-    g.appendChild(text);
-    viewport.appendChild(g);
-
-    // Sidebar list
-    const div = document.createElement('div');
-    div.style = "padding:8px; border-bottom:1px solid #333; cursor:pointer; font-size:0.8rem";
-    div.innerHTML = `<strong>${m.name}</strong><br><span style="color:var(--text3)">${m.profession || 'No Profession'}</span>`;
-    div.onclick = () => showDetails(m.id);
-    list.appendChild(div);
-  });
+/* SAVE */
+function persist(){
+localStorage.setItem("nhaka_"+user,JSON.stringify(state));
 }
 
-// --- CRUD OPS ---
-function saveMember() {
-  const m = {
-    id: editingId || Date.now().toString(),
-    name: document.getElementById('mName').value,
-    profession: document.getElementById('mProfession').value,
-    totem: document.getElementById('mTotem').value,
-    province: document.getElementById('mProvince').value,
-    parentId: document.getElementById('mParent').value,
-    gender: document.getElementById('mGender').value
-  };
-
-  if (editingId) {
-    const idx = members.findIndex(x => x.id === editingId);
-    members[idx] = m;
-  } else {
-    members.push(m);
-  }
-
-  localStorage.setItem(`nhaka_data_${currentUser}`, JSON.stringify(members));
-  closeModal();
-  render();
+/* MODAL */
+function openModal(){
+document.getElementById("modal").style.display="block";
+populateParent();
+}
+function closeModal(){
+document.getElementById("modal").style.display="none";
 }
 
-function openModal(mode, id = null) {
-  editingId = id;
-  const parentSel = document.getElementById('mParent');
-  parentSel.innerHTML = '<option value="">Root (No Parent)</option>';
-  members.forEach(m => { if(m.id !== id) parentSel.innerHTML += `<option value="${m.id}">${m.name}</option>`; });
-
-  if(id) {
-    const m = members.find(x => x.id === id);
-    document.getElementById('mName').value = m.name;
-    document.getElementById('mProfession').value = m.profession;
-    document.getElementById('mTotem').value = m.totem;
-    document.getElementById('mProvince').value = m.province;
-    document.getElementById('mParent').value = m.parentId;
-    document.getElementById('mGender').value = m.gender;
-    document.getElementById('modalTitle').innerText = "Edit Member";
-  } else {
-    document.getElementById('mName').value = "";
-    document.getElementById('modalTitle').innerText = "Add Member";
-  }
-  document.getElementById('memberModal').classList.remove('hidden');
+/* POPULATE PARENT */
+function populateParent(){
+const sel=document.getElementById("parent");
+sel.innerHTML='<option value="">No Parent</option>';
+state.members.forEach(m=>{
+const o=document.createElement("option");
+o.value=m.id;
+o.textContent=m.name;
+sel.appendChild(o);
+});
 }
 
-function closeModal() { document.getElementById('memberModal').classList.add('hidden'); }
+/* SAVE MEMBER */
+function save(){
 
-function showDetails(id) {
-  const m = members.find(x => x.id === id);
-  document.getElementById('dName').innerText = m.name;
-  document.getElementById('dProfession').innerText = m.profession || "Profession not stated";
-  document.getElementById('dDetails').innerHTML = `
-    <strong>Totem:</strong> ${m.totem}<br>
-    <strong>Province:</strong> ${m.province}<br>
-    <strong>Gender:</strong> ${m.gender}
-  `;
-  document.getElementById('editBtn').onclick = () => openModal('edit', id);
-  document.getElementById('detailPanel').classList.add('active');
+const id="m_"+Date.now();
+
+const m={
+id,
+name:name.value,
+gender:gender.value,
+birth:Number(birth.value),
+death:Number(death.value),
+profession:profession.value,
+province:province.value,
+district:district.value,
+village:village.value,
+totem:totem.value,
+praise:praise.value,
+burial:burial.value,
+notes:notes.value
+};
+
+state.members.push(m);
+
+if(parent.value){
+state.links.push({parent:parent.value,child:id});
 }
 
-function closeDetails() { document.getElementById('detailPanel').classList.remove('active'); }
-
-function centerTree() {
-  const view = document.getElementById('viewport');
-  view.setAttribute("transform", `translate(100, 50) scale(1)`);
+persist();
+closeModal();
+render();
 }
 
-// Initial state
-centerTree();
+/* SORT */
+function sortMembers(){
+return state.members.sort((a,b)=>{
+return (a.birth||9999)-(b.birth||9999);
+});
+}
+
+/* TREE BUILD */
+function buildTree(){
+const map={};
+state.members.forEach(m=>map[m.id]={...m,children:[]});
+
+state.links.forEach(l=>{
+if(map[l.parent] && map[l.child]){
+map[l.parent].children.push(map[l.child]);
+}
+});
+
+return Object.values(map).filter(m=>{
+return !state.links.find(l=>l.child===m.id);
+});
+}
+
+/* RENDER */
+function render(){
+
+const canvas=document.getElementById("canvas");
+const sidebar=document.getElementById("sidebar");
+
+canvas.innerHTML="";
+sidebar.innerHTML="";
+
+const roots=buildTree();
+
+let x=50;
+
+function draw(node,depth){
+
+const div=document.createElement("div");
+div.className="node";
+
+div.style.left=(x)+"px";
+div.style.top=(depth*140+20)+"px";
+
+div.innerHTML=`
+<strong>${node.name}</strong><br>
+${node.profession||''}<br>
+${node.birth||''}<br>
+${node.totem||''}
+`;
+
+canvas.appendChild(div);
+
+sidebar.innerHTML+=`
+<div class="member-card">${node.name}</div>
+`;
+
+let startX=x;
+
+node.children.sort((a,b)=>(a.birth||9999)-(b.birth||9999));
+
+node.children.forEach(child=>{
+x+=220;
+draw(child,depth+1);
+});
+
+if(node.children.length){
+x=(startX+x)/2;
+}
+
+}
+
+roots.sort((a,b)=>(a.birth||9999)-(b.birth||9999));
+
+roots.forEach(r=>{
+draw(r,0);
+x+=260;
+});
+
+}
+
 </script>
+
 </body>
 </html>
